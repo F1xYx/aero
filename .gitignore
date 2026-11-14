@@ -1,0 +1,16 @@
+# Зависимости
+node_modules/
+
+# Сборка (installers/бинарники, собираются через npm run dist)
+dist/
+out/
+
+# Логи и мусор
+*.log
+.DS_Store
+Thumbs.db
+
+# Локальные данные
+db/
+*.db
+*.sqlite

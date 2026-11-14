@@ -1,0 +1,70 @@
+{
+  "name": "aera",
+  "productName": "Aera",
+  "version": "2.2.0",
+  "description": "Aera — полноценный браузер на движке Chromium",
+  "main": "main.js",
+  "author": "Z",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis portable"
+  },
+  "trustedDependencies": [
+    "electron"
+  ],
+  "build": {
+    "appId": "com.aera.browser",
+    "productName": "Aera",
+    "copyright": "Aera 2.2.0",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "src/**/*",
+      "renderer/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      },
+      {
+        "from": "build/filters",
+        "to": "filters"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis"
+        },
+        {
+          "target": "portable"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "artifactName": "Aera-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Aera-Portable-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0"
+  },
+  "dependencies": {
+    "adm-zip": "^0.6.1"
+  }
+}
