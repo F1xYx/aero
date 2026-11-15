@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aera</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ══════════════ Titlebar: traffic lights + tab strip + windows buttons ══════════════ -->
+    <header id="titlebar">
+      <div class="traffic-lights" aria-hidden="true">
+        <button id="tl-close" class="tl tl-close" tabindex="-1">
+          <svg viewBox="0 0 10 10"><path d="M2.5 2.5 L7.5 7.5 M7.5 2.5 L2.5 7.5"/></svg>
+        </button>
+        <button id="tl-min" class="tl tl-min" tabindex="-1">
+          <svg viewBox="0 0 10 10"><path d="M2 5 L8 5"/></svg>
+        </button>
+        <button id="tl-max" class="tl tl-max" tabindex="-1">
+          <svg viewBox="0 0 10 10"><path d="M2.8 2.8 L2.8 7.2 L7.2 7.2 L7.2 2.8 Z"/></svg>
+        </button>
+      </div>
+
+      <div id="tabstrip" role="tablist" aria-label="Вкладки"></div>
+
+      <button id="btn-newtab" class="tbtn" title="Новая вкладка (Ctrl+T)" aria-label="Новая вкладка">
+        <svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+
+      <div class="titlebar-spacer"></div>
+
+      <div id="win-buttons" class="win-buttons">
+        <button id="wb-min" class="wb" title="Свернуть">
+          <svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </button>
+        <button id="wb-max" class="wb" title="Развернуть">
+          <svg viewBox="0 0 12 12" id="wb-max-icon"><rect x="3" y="3" width="6" height="6" rx="1" stroke-width="1.2"/></svg>
+        </button>
+        <button id="wb-close" class="wb wb-close" title="Закрыть">
+          <svg viewBox="0 0 12 12"><path d="M3.2 3.2 L8.8 8.8 M8.8 3.2 L3.2 8.8" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ══════════════ Toolbar: navigation + omnibox ══════════════ -->
+    <nav id="toolbar">
+      <div class="tb-group tb-left">
+        <button id="btn-back" class="tbtn" title="Назад (Alt+←)" aria-label="Назад" disabled>
+          <svg viewBox="0 0 16 16"><path d="M10.5 3 L5.5 8 L10.5 13" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button id="btn-fwd" class="tbtn" title="Вперед (Alt+→)" aria-label="Вперед" disabled>
+          <svg viewBox="0 0 16 16"><path d="M5.5 3 L10.5 8 L5.5 13" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button id="btn-reload" class="tbtn" title="Обновить (Ctrl+R)" aria-label="Обновить">
+          <svg viewBox="0 0 16 16" id="reload-icon"><path d="M13 8a5 5 0 1 1-1.46-3.54M13 2.5V5h-2.5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <div class="tb-center">
+        <div id="addressbar" class="addressbar">
+          <span class="ab-icon" id="ab-icon">
+            <svg class="ic-lock" viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1.6" stroke-width="1.4"/><path d="M5.5 7V5.2a2.5 2.5 0 0 1 5 0V7" stroke-width="1.4"/></svg>
+            <svg class="ic-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.2" stroke-width="1.5"/><path d="M10.2 10.2 L13.5 13.5" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+          <input id="omnibox" type="text" spellcheck="false" autocomplete="off"
+                 placeholder="Поиск или адрес сайта" aria-label="Адресная строка">
+          <span class="ab-clear" id="ab-clear">
+            <svg viewBox="0 0 16 16"><path d="M4.5 4.5 L11.5 11.5 M11.5 4.5 L4.5 11.5" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+          <div id="suggest" class="suggest" role="listbox" aria-label="Подсказки"></div>
+        </div>
+      </div>
+
+      <div class="tb-group tb-right">
+        <button id="btn-overview" class="tbtn" title="Обзор вкладок (Ctrl+Shift+O)" aria-label="Обзор вкладок">
+          <svg viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="4.6" height="4.6" rx="1.2" stroke-width="1.3"/><rect x="8.9" y="2.5" width="4.6" height="4.6" rx="1.2" stroke-width="1.3"/><rect x="2.5" y="8.9" width="4.6" height="4.6" rx="1.2" stroke-width="1.3"/><rect x="8.9" y="8.9" width="4.6" height="4.6" rx="1.2" stroke-width="1.3"/></svg>
+        </button>
+        <button id="btn-settings" class="tbtn" title="Настройки (Ctrl+,)" aria-label="Настройки">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.1" stroke-width="1.4"/><path d="M8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M12.4 3.6l-1.2 1.2M4.8 11.2l-1.2 1.2" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ══════════════ Views ══════════════ -->
+    <main id="views" aria-label="Содержимое вкладок"></main>
+
+    <!-- ══════════════ Tab overview ══════════════ -->
+    <div id="overview" class="overview hidden" aria-hidden="true">
+      <div class="overview-inner">
+        <div class="overview-head">
+          <span class="overview-title">Все вкладки</span>
+          <button id="ov-close" class="tbtn" aria-label="Закрыть обзор">
+            <svg viewBox="0 0 16 16"><path d="M4.5 4.5 L11.5 11.5 M11.5 4.5 L4.5 11.5" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div id="overview-grid" class="overview-grid"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ Context menu ══════════════ -->
+    <div id="ctxmenu" class="ctxmenu hidden" role="menu"></div>
+
+    <!-- ══════════════ Modal root (widget settings etc.) ══════════════ -->
+    <div id="modal-root"></div>
+
+    <div id="toast-root" aria-live="polite"></div>
+  </div>
+
+  <script src="store.js"></script>
+  <script src="newtab.js"></script>
+  <script src="settings.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

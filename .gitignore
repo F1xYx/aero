@@ -52,3 +52,13 @@ prompt
 server.log
 # Skills directory
 /skills/
+# Aera build artifacts
+zbrowser-desktop/dist/
+zbrowser-desktop/node_modules/
+tool-results/
+
+# Browser build artifacts & large binaries
+download/*.exe
+download/archive/
+upload/
+backups-VERSIONS.md

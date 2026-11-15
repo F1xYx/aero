@@ -119,4 +119,14 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Aera landing is a dark, glass-styled page: guarantee a dark paint from the
+     very first frame (no white flash), while keeping shadcn theme variables. */
+  html,
+  body {
+    background-color: #0d0d10;
+  }
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+  }
 }

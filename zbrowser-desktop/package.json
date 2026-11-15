@@ -1,0 +1,53 @@
+{
+  "name": "aero-browser",
+  "productName": "Aero",
+  "version": "2.3.9",
+  "description": "Aero - browser with Safari 27 (Golden Gate) interface",
+  "main": "main.js",
+  "author": "Aero Team",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "electron": "31.7.7",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "com.aero.browser",
+    "productName": "Aero",
+    "copyright": "Copyright (c) 2026 Aero Team",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "allowElevation": true,
+      "multiLanguageInstaller": true,
+      "installerLanguages": ["ru_RU", "en_US"],
+      "language": "1049",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Aero",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "Aero-Setup-${version}.${ext}",
+      "include": "build/installer.nsh",
+      "script": "build/installer.nsi"
+    },
+    "portable": {
+      "artifactName": "Aero-Portable-${version}.${ext}"
+    }
+  }
+}
