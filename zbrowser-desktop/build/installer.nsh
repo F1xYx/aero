@@ -1,9 +1,19 @@
 ; Aero custom installer script (electron-builder NSIS include)
 ; Modern 2-click installer like Chrome / Edge:
-;   1. Welcome page: logo, install-folder row, shortcut options, "Установить"
+;   1. Welcome page: painted glass banner (logo + wordmark + version pill),
+;      big title, properly sized shortcut options, install folder, CTA
 ;   2. Progress (InstFiles)
-;   3. Finish page: "Запустить Aero" checkbox
+;   3. Finish page: banner, "Aero installed", "Запустить Aero" checkbox
 ; No license page, no old-style sidebar, no install-mode page.
+;
+; Layout hardening (2.3.12):
+;   - checkbox rows are 14u tall with 15u pitch — no clipped glyphs/text at
+;     125%–150% Windows DPI (10u rows clipped at high DPI)
+;   - labels shortened, long explanation moved to a small hint line
+;   - banner bitmap is placed via NSD_SetStretchedImage (scales to the
+;     control at any DPI; NSD_SetImage drew it native-size and cropped it)
+;   - Browse button no longer overlaps the read-only path field
+;   - all control widths are explicit dialog units (no unit ambiguity)
 
 !include "nsDialogs.nsh"
 !include "LogicLib.nsh"
@@ -40,6 +50,7 @@
 !macro customInit
   InitPluginsDir
   File "/oname=$PLUGINSDIR\aero-logo.bmp" "${BUILD_RESOURCES_DIR}\installerLogo.bmp"
+  File "/oname=$PLUGINSDIR\aero-finish.bmp" "${BUILD_RESOURCES_DIR}\installerFinishLogo.bmp"
 !macroend
 
 ; ─────────────────────────────────────────────────────────────
@@ -102,19 +113,20 @@
 !ifndef BUILD_UNINSTALLER
 
 ; ─────────────────────────────────────────────────────────────
-; Welcome page: logo, title, options, install folder, big CTA
+; Welcome page: banner, title, options, install folder, big CTA
 ; ─────────────────────────────────────────────────────────────
 Var hAeroWelcomeDlg
 Var hAeroLogoCtl
 Var hAeroTitleLbl
 Var hAeroSubLbl
+Var hAeroChkDesktop
+Var hAeroChkMenu
+Var hAeroChkRun
+Var hAeroChkLinks
+Var hAeroHintLbl
 Var hAeroPathLbl
 Var hAeroPathTxt
 Var hAeroPathBtn
-Var hAeroChkDesktop
-Var hAeroChkMenu
-Var hAeroChkLinks
-Var hAeroChkRun
 Var hAeroFontTitle
 Var hAeroFinishDlg
 Var hAeroFinishLogoCtl
@@ -122,6 +134,7 @@ Var hAeroFinishTitle
 Var hAeroFinishSub
 Var hAeroFinishChk
 Var hAeroFinishImg
+Var hAeroFinishImg2
 
 Var AeroOptDesktop
 Var AeroOptMenu
@@ -142,53 +155,55 @@ Var AeroRunAfterInstall
 
     SetCtlColors $hAeroWelcomeDlg "${AERO_TEXT}" "${AERO_PAGE_BG}"
 
-    ; fonts (nsDialogs plugin has no CreateFont — use user32 directly)
-    System::Call 'user32::CreateFontW(i -21, i 0, i 0, i 0, i 700, i 0, i 0, i 0, i 0, i 0, i 0, i 0, i 0, t "Segoe UI") i.s'
-    Pop $hAeroFontTitle
-
-    ; logo (canvas already centered on white)
-    ${NSD_CreateBitmap} 0 0 100% 42u ""
+    ; painted glass banner (logo + wordmark + version pill), scales to any DPI
+    ${NSD_CreateBitmap} 0 0 100% 50u ""
     Pop $hAeroLogoCtl
-    ${NSD_SetImage} $hAeroLogoCtl "$PLUGINSDIR\aero-logo.bmp" $R2
+    ${NSD_SetStretchedImage} $hAeroLogoCtl "$PLUGINSDIR\aero-logo.bmp" $hAeroFinishImg2
 
     ; title + subtitle
-    ${NSD_CreateLabel} 0 46u 100% 12u "$(aeroWelcomeTitle)"
+    ${NSD_CreateLabel} 12u 56u 309u 15u "$(aeroWelcomeTitle)"
     Pop $hAeroTitleLbl
+    System::Call 'user32::CreateFontW(i -24, i 0, i 0, i 0, i 620, i 0, i 0, i 0, i 0, i 0, i 0, i 0, i 0, t "Segoe UI") i.s'
+    Pop $hAeroFontTitle
     SendMessage $hAeroTitleLbl ${WM_SETFONT} $hAeroFontTitle 1
     SetCtlColors $hAeroTitleLbl "${AERO_TEXT}" "${AERO_PAGE_BG}"
 
-    ${NSD_CreateLabel} 0 60u 100% 8u "$(aeroWelcomeSub)"
+    ${NSD_CreateLabel} 12u 73u 309u 10u "$(aeroWelcomeSub)"
     Pop $hAeroSubLbl
     SetCtlColors $hAeroSubLbl "${AERO_TEXT_SUB}" "${AERO_PAGE_BG}"
 
-    ; options
-    ${NSD_CreateCheckbox} 22u 74u 80% 10u "$(aeroOptDesktop)"
+    ; options — 14u tall rows (DPI-safe), short labels, hint line below
+    ${NSD_CreateCheckbox} 12u 92u 309u 14u "$(aeroOptDesktop)"
     Pop $hAeroChkDesktop
     SetCtlColors $hAeroChkDesktop "${AERO_TEXT}" "${AERO_PAGE_BG}"
 
-    ${NSD_CreateCheckbox} 22u 86u 80% 10u "$(aeroOptMenu)"
+    ${NSD_CreateCheckbox} 12u 107u 309u 14u "$(aeroOptMenu)"
     Pop $hAeroChkMenu
     SetCtlColors $hAeroChkMenu "${AERO_TEXT}" "${AERO_PAGE_BG}"
 
-    ${NSD_CreateCheckbox} 22u 98u 80% 10u "$(aeroOptRun)"
+    ${NSD_CreateCheckbox} 12u 122u 309u 14u "$(aeroOptRun)"
     Pop $hAeroChkRun
     SetCtlColors $hAeroChkRun "${AERO_TEXT}" "${AERO_PAGE_BG}"
 
-    ${NSD_CreateCheckbox} 22u 110u 80% 10u "$(aeroOptLinks)"
+    ${NSD_CreateCheckbox} 12u 137u 309u 14u "$(aeroOptLinks)"
     Pop $hAeroChkLinks
     SetCtlColors $hAeroChkLinks "${AERO_TEXT}" "${AERO_PAGE_BG}"
 
-    ; install folder row
-    ${NSD_CreateLabel} 22u 124u 60% 8u "$(aeroFolderLabel)"
+    ${NSD_CreateLabel} 24u 153u 297u 8u "$(aeroOptLinksHint)"
+    Pop $hAeroHintLbl
+    SetCtlColors $hAeroHintLbl "${AERO_TEXT_SUB}" "${AERO_PAGE_BG}"
+
+    ; install folder row (field and button do not overlap)
+    ${NSD_CreateLabel} 12u 166u 309u 8u "$(aeroFolderLabel)"
     Pop $hAeroPathLbl
     SetCtlColors $hAeroPathLbl "${AERO_TEXT_SUB}" "${AERO_PAGE_BG}"
 
-    ${NSD_CreateText} 22u 133u 76% 12u "$INSTDIR"
+    ${NSD_CreateText} 12u 176u 262u 13u "$INSTDIR"
     Pop $hAeroPathTxt
     SetCtlColors $hAeroPathTxt "${AERO_TEXT_SUB}" "${AERO_FIELD_BG}"
     SendMessage $hAeroPathTxt ${EM_SETREADONLY} 1 0
 
-    ${NSD_CreateButton} 210u 133u 40u 12u "$(aeroBrowse)"
+    ${NSD_CreateButton} 280u 176u 41u 13u "$(aeroBrowse)"
     Pop $hAeroPathBtn
     ${NSD_OnClick} $hAeroPathBtn AeroBrowseFolder
 
@@ -201,7 +216,8 @@ Var AeroRunAfterInstall
     GetDlgItem $0 $HWNDPARENT 2
     SendMessage $0 ${WM_SETTEXT} 0 "STR:$(aeroBtnCancel)"
 
-    ; blank header strip text (all branding lives in the body)
+    ; clean wizard chrome: own window title, blank header strip texts
+    SendMessage $HWNDPARENT ${WM_SETTEXT} 0 "STR:Aero — установка"
     FindWindow $R0 "#32770" "" $HWNDPARENT
     GetDlgItem $R1 $R0 1037
     SendMessage $R1 ${WM_SETTEXT} 0 "STR:"
@@ -211,7 +227,7 @@ Var AeroRunAfterInstall
     nsDialogs::Show
 
     ; cleanup image handle
-    ${NSD_FreeImage} $R2
+    ${NSD_FreeImage} $hAeroFinishImg2
   FunctionEnd
 
   Function AeroBrowseFolder
@@ -262,7 +278,7 @@ Var AeroRunAfterInstall
 !macroend
 
 ; ─────────────────────────────────────────────────────────────
-; Finish page: logo, done text, "Запустить Aero" checkbox
+; Finish page: banner, done text, "Запустить Aero" checkbox
 ; ─────────────────────────────────────────────────────────────
 !macro customFinishPage
   Page custom AeroFinishCreate AeroFinishLeave
@@ -273,22 +289,22 @@ Var AeroRunAfterInstall
 
     SetCtlColors $hAeroFinishDlg "${AERO_TEXT}" "${AERO_PAGE_BG}"
 
-    ${NSD_CreateBitmap} 0 0 100% 42u ""
+    ${NSD_CreateBitmap} 0 0 100% 50u ""
     Pop $hAeroFinishLogoCtl
-    ${NSD_SetImage} $hAeroFinishLogoCtl "$PLUGINSDIR\aero-logo.bmp" $hAeroFinishImg
+    ${NSD_SetStretchedImage} $hAeroFinishLogoCtl "$PLUGINSDIR\aero-finish.bmp" $hAeroFinishImg
 
-    ${NSD_CreateLabel} 0 46u 100% 12u "$(aeroFinishTitle)"
+    ${NSD_CreateLabel} 12u 56u 309u 15u "$(aeroFinishTitle)"
     Pop $hAeroFinishTitle
-    System::Call 'user32::CreateFontW(i -21, i 0, i 0, i 0, i 700, i 0, i 0, i 0, i 0, i 0, i 0, i 0, i 0, t "Segoe UI") i.s'
+    System::Call 'user32::CreateFontW(i -24, i 0, i 0, i 0, i 620, i 0, i 0, i 0, i 0, i 0, i 0, i 0, i 0, t "Segoe UI") i.s'
     Pop $0
     SendMessage $hAeroFinishTitle ${WM_SETFONT} $0 1
     SetCtlColors $hAeroFinishTitle "${AERO_TEXT}" "${AERO_PAGE_BG}"
 
-    ${NSD_CreateLabel} 0 60u 100% 8u "$(aeroFinishSub)"
+    ${NSD_CreateLabel} 12u 73u 309u 10u "$(aeroFinishSub)"
     Pop $hAeroFinishSub
     SetCtlColors $hAeroFinishSub "${AERO_TEXT_SUB}" "${AERO_PAGE_BG}"
 
-    ${NSD_CreateCheckbox} 22u 78u 80% 10u "$(aeroFinishRun)"
+    ${NSD_CreateCheckbox} 12u 96u 309u 14u "$(aeroFinishRun)"
     Pop $hAeroFinishChk
     SetCtlColors $hAeroFinishChk "${AERO_TEXT}" "${AERO_PAGE_BG}"
 
@@ -302,6 +318,7 @@ Var AeroRunAfterInstall
     GetDlgItem $0 $HWNDPARENT 2
     SendMessage $0 ${WM_SETTEXT} 0 "STR:$(aeroBtnCancel)"
 
+    SendMessage $HWNDPARENT ${WM_SETTEXT} 0 "STR:Aero — установка завершена"
     FindWindow $R0 "#32770" "" $HWNDPARENT
     GetDlgItem $R1 $R0 1037
     SendMessage $R1 ${WM_SETTEXT} 0 "STR:"
@@ -324,34 +341,36 @@ Var AeroRunAfterInstall
 ; ─────────────────────────────────────────────────────────────
 ; Localized strings (ru + en; installerLanguages restricted to both)
 ; ─────────────────────────────────────────────────────────────
-LangString aeroWelcomeTitle 1049 "Добро пожаловать в Aero"
-LangString aeroWelcomeSub   1049 "Браузер в стиле Safari 27 для Windows. Всё готово к установке — настройте параметры ниже."
+LangString aeroWelcomeTitle 1049 "Установка Aero"
+LangString aeroWelcomeSub   1049 "Браузер в стиле Safari 27 для Windows. Настройте параметры и нажмите «Установить»."
 LangString aeroFolderLabel  1049 "Папка установки"
 LangString aeroBrowse       1049 "Обзор…"
 LangString aeroSelFolderTitle 1049 "Выберите папку установки"
-LangString aeroBtnInstall   1049 "Установить"
+LangString aeroBtnInstall   1049 "Установить Aero"
 LangString aeroBtnCancel    1049 "Отмена"
 LangString aeroBtnDone      1049 "Готово"
 LangString aeroOptDesktop   1049 "Создать ярлык на рабочем столе"
 LangString aeroOptMenu      1049 "Создать ярлык в меню «Пуск»"
 LangString aeroOptRun       1049 "Запускать Aero при входе в Windows"
-LangString aeroOptLinks     1049 "Зарегистрировать для веб-ссылок (список «Открыть с помощью» и системные настройки браузеров)"
+LangString aeroOptLinks     1049 "Открывать веб-ссылки (http/https) в Aero"
+LangString aeroOptLinksHint 1049 "Aero появится в списке «Открыть с помощью» и в параметрах Windows."
 LangString aeroFinishTitle  1049 "Aero установлен"
 LangString aeroFinishSub    1049 "Спасибо, что выбрали Aero. Хороших прогулок по интернету."
 LangString aeroFinishRun    1049 "Запустить Aero"
 
-LangString aeroWelcomeTitle 1033 "Welcome to Aero"
-LangString aeroWelcomeSub   1033 "A browser with the Safari 27 look for Windows. Ready to install — adjust the options below."
+LangString aeroWelcomeTitle 1033 "Install Aero"
+LangString aeroWelcomeSub   1033 "A browser with the Safari 27 look for Windows. Adjust the options below and hit Install."
 LangString aeroFolderLabel  1033 "Installation folder"
 LangString aeroBrowse       1033 "Browse…"
 LangString aeroSelFolderTitle 1033 "Choose installation folder"
-LangString aeroBtnInstall   1033 "Install"
+LangString aeroBtnInstall   1033 "Install Aero"
 LangString aeroBtnCancel    1033 "Cancel"
 LangString aeroBtnDone      1033 "Finish"
 LangString aeroOptDesktop   1033 "Create a desktop shortcut"
 LangString aeroOptMenu      1033 "Create a Start Menu shortcut"
 LangString aeroOptRun       1033 "Launch Aero when Windows starts"
-LangString aeroOptLinks     1033 "Register for web links (Open With list and Windows default browser settings)"
+LangString aeroOptLinks     1033 "Open web links (http/https) in Aero"
+LangString aeroOptLinksHint 1033 "Aero will appear in the Open With list and in Windows settings."
 LangString aeroFinishTitle  1033 "Aero is installed"
 LangString aeroFinishSub    1033 "Thanks for choosing Aero. Enjoy the web."
 LangString aeroFinishRun    1033 "Launch Aero"
