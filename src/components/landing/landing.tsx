@@ -1,664 +1,793 @@
 "use client";
 
+/* ═══════════════════════════════════════════════════════════════════
+   Лендинг Aero — «Liquid Glass».
+   Полностью новая визуальная система: матовые стеклянные окна,
+   aurora-градиенты, scroll-параллакс. Ни одного скриншота — только
+   CSS/SVG-мокапы из browser-mockups.tsx и логотип /aero-icon.png.
+   ═══════════════════════════════════════════════════════════════════ */
+
 import Image from "next/image";
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import {
+  MotionConfig,
   motion,
+  useReducedMotion,
   useScroll,
-  useTransform,
   useSpring,
-  useMotionValue,
-  useMotionValueEvent,
+  useTransform,
+  type MotionValue,
+  type Variants,
 } from "framer-motion";
 import {
-  AppWindow,
-  ArrowDown,
-  Gauge,
-  LayoutGrid,
+  ArrowUpRight,
+  Cpu,
+  Download,
+  Droplets,
+  KeyRound,
+  Layers,
+  LayoutDashboard,
+  MoonStar,
+  Package,
   PanelsTopLeft,
   ShieldCheck,
-  SlidersHorizontal,
   Sparkles,
-  Wand2,
+  type LucideIcon,
 } from "lucide-react";
 import { DesktopDownloads } from "@/components/desktop-downloads";
-import { NewtabMockup, SettingsMockup, WidgetSettingsMockup } from "@/components/landing/browser-mockups";
+import { GlassWindow } from "@/components/landing/browser-mockups";
 
-const VERSION = "2.3.9";
+const VERSION = "2.3.10";
 
 const NAV_LINKS = [
-  { href: "#overview", label: "Обзор" },
-  { href: "#demo", label: "Демо" },
-  { href: "#widgets", label: "Виджеты" },
-  { href: "#install", label: "Установка" },
+  { href: "#features", label: "Возможности" },
+  { href: "#glass", label: "Стекло" },
+  { href: "#download", label: "Скачать" },
 ] as const;
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const reveal: Variants = {
+  hidden: { opacity: 0, y: 30, scale: 0.985 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.75, ease: EASE } },
+};
+
+const stagger: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.09, delayChildren: 0.08 } },
+};
+
+/* ── Хуки и примитивы ─────────────────────────────────────────────── */
+
+/** Параллакс по глобальному скроллу: элемент «плывёт» медленнее страницы. */
+function useScrollParallax(distance: number): MotionValue<number> {
+  const reduce = useReducedMotion();
+  const { scrollY } = useScroll();
+  const raw = useTransform(scrollY, [0, 2400], [0, reduce ? 0 : distance]);
+  return useSpring(raw, { stiffness: 45, damping: 22, mass: 0.5 });
+}
+
+function Reveal({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return (
+    <motion.div
+      variants={reveal}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-15%" }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function GlassChip({
+  icon: Icon,
+  className = "",
+  speed = -40,
+  delay = 0,
+}: {
+  icon: LucideIcon;
+  className?: string;
+  speed?: number;
+  delay?: number;
+}) {
+  const y = useScrollParallax(speed);
+  return (
+    <motion.div
+      aria-hidden="true"
+      style={{ y }}
+      className={`pointer-events-none absolute z-20 hidden lg:block ${className}`}
+    >
+      <div className="aero-float" style={{ animationDelay: `${delay}s` }}>
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] shadow-[0_18px_50px_-16px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.09)] backdrop-blur-xl">
+          <Icon className="h-5 w-5 text-zinc-200" strokeWidth={1.6} />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function SectionHeading({
+  eyebrow,
+  title,
+  text,
+}: {
+  eyebrow: string;
+  title: ReactNode;
+  text: string;
+}) {
+  return (
+    <div className="mx-auto max-w-2xl text-center">
+      <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3.5 py-1.5 text-[12.5px] font-medium tracking-wide text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl">
+        {eyebrow}
+      </span>
+      <h2 className="mt-5 text-balance text-3xl font-semibold tracking-tight text-zinc-100 sm:text-5xl sm:leading-[1.08]">
+        {title}
+      </h2>
+      <p className="mt-4 text-pretty text-[15px] leading-relaxed text-zinc-400 sm:text-base">{text}</p>
+    </div>
+  );
+}
+
+/* ── Фон: aurora-блобы + зерно ────────────────────────────────────── */
+
+function AuroraBackground() {
+  const ySlow = useScrollParallax(-140);
+  const yMid = useScrollParallax(-260);
+  const yFast = useScrollParallax(-380);
+
+  return (
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#0a0a0d]">
+      <motion.div style={{ y: ySlow }} className="absolute -left-48 top-[-12%]">
+        <div className="aero-blob-a h-[42rem] w-[42rem] rounded-full bg-violet-600/[0.22] blur-[130px]" />
+      </motion.div>
+      <motion.div style={{ y: yMid }} className="absolute right-[-18%] top-[14%]">
+        <div className="aero-blob-b h-[38rem] w-[38rem] rounded-full bg-fuchsia-500/[0.16] blur-[140px]" />
+      </motion.div>
+      <motion.div style={{ y: yFast }} className="absolute bottom-[-24%] left-[22%]">
+        <div className="aero-blob-c h-[40rem] w-[40rem] rounded-full bg-teal-400/[0.13] blur-[150px]" />
+      </motion.div>
+      <div className="aero-noise absolute inset-0" />
+      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,transparent_55%,rgba(0,0,0,0.5)_100%)]" />
+    </div>
+  );
+}
+
+/* ── Шапка: плавающая стеклянная пилюля ───────────────────────────── */
+
+function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-50 w-full">
+      <motion.nav
+        aria-label="Основная навигация"
+        initial={{ opacity: 0, y: -18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: EASE }}
+        className="mx-auto mt-4 flex h-12 w-fit items-center gap-1 rounded-full border border-white/10 bg-white/[0.05] pl-3.5 pr-3 shadow-[0_16px_50px_-16px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl"
+      >
+        <a href="#top" className="mr-1 flex items-center gap-2" aria-label="Aero — вернуться к началу">
+          <Image
+            src="/aero-icon.png"
+            alt="Логотип Aero — стеклянный шар"
+            width={24}
+            height={24}
+            className="h-6 w-6"
+          />
+          <span className="text-[15px] font-semibold tracking-tight text-zinc-100">Aero</span>
+        </a>
+        <span aria-hidden="true" className="mx-1 h-4 w-px bg-white/10" />
+        <div className="hidden items-center sm:flex">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="rounded-full px-3 py-1.5 text-[13px] font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-100"
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+        <span
+          className="ml-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[11px] font-medium tabular-nums text-zinc-300"
+          title="Текущая версия Aero"
+        >
+          {VERSION}
+        </span>
+      </motion.nav>
+    </header>
+  );
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+
+const HERO_CHIPS = [
+  { icon: Cpu, label: "Chromium внутри" },
+  { icon: Package, label: "Портативная версия" },
+  { icon: ShieldCheck, label: "Блокировщик рекламы" },
+  { icon: MoonStar, label: "Тёмная тема" },
+] as const;
+
+function Hero() {
+  const windowY = useScrollParallax(-90);
+
+  return (
+    <section className="relative px-6 pb-20 pt-14 sm:pt-20 lg:pb-28" aria-labelledby="hero-title">
+      <div className="mx-auto grid w-full max-w-6xl items-center gap-16 lg:grid-cols-[0.95fr_1.2fr] lg:gap-10">
+        <div className="flex flex-col items-start">
+          <motion.span
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: EASE, delay: 0.05 }}
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3.5 py-1.5 text-[12.5px] font-medium text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-fuchsia-300" strokeWidth={1.8} />
+            Версия {VERSION} — настоящее жидкое стекло
+          </motion.span>
+
+          <motion.h1
+            id="hero-title"
+            initial={{ opacity: 0, y: 26 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: EASE, delay: 0.15 }}
+            className="mt-6 text-balance text-[2.6rem] font-semibold leading-[1.04] tracking-tight text-zinc-100 sm:text-6xl lg:text-[4.1rem]"
+          >
+            Браузер с интерфейсом{" "}
+            <span className="bg-gradient-to-br from-violet-300 via-fuchsia-200 to-teal-200 bg-clip-text text-transparent">
+              Safari&nbsp;27
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 26 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: EASE, delay: 0.25 }}
+            className="mt-5 max-w-lg text-pretty text-[16px] leading-relaxed text-zinc-400 sm:text-[17px]"
+          >
+            Жидкое стекло, вкладки-пилюли и живые виджеты стартовой страницы. Вся красота macOS —
+            в браузере для Windows на движке Chromium.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 26 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: EASE, delay: 0.35 }}
+            className="mt-8 flex flex-wrap items-center gap-3"
+          >
+            <a
+              href="#download"
+              className="inline-flex h-12 items-center gap-2.5 rounded-full bg-white px-6 text-[15px] font-semibold text-zinc-950 shadow-[0_16px_50px_-12px_rgba(255,255,255,0.35)] transition-colors hover:bg-zinc-200"
+            >
+              <Download className="h-4 w-4" strokeWidth={2} />
+              Скачать для Windows
+            </a>
+            <a
+              href="#features"
+              className="inline-flex h-12 items-center rounded-full border border-white/15 bg-white/[0.04] px-6 text-[15px] font-medium text-zinc-200 backdrop-blur-xl transition-colors hover:border-white/25 hover:bg-white/[0.08]"
+            >
+              Возможности
+            </a>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.9, ease: EASE, delay: 0.5 }}
+            className="mt-9 flex flex-wrap gap-2"
+          >
+            {HERO_CHIPS.map((chip) => (
+              <span
+                key={chip.label}
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12.5px] text-zinc-400 backdrop-blur-lg"
+              >
+                <chip.icon className="h-3.5 w-3.5 text-zinc-500" strokeWidth={1.7} />
+                {chip.label}
+              </span>
+            ))}
+          </motion.div>
+        </div>
+
+        {/* Стеклянное окно — парит и наклонено в 3D */}
+        <div className="relative">
+          {/* Стеклянные бейджи — парят ПОВЕРХ окна (намеренный стек-эффект) */}
+          <GlassChip icon={MoonStar} className="-top-3 right-8" speed={-80} delay={4.2} />
+          <GlassChip icon={Layers} className="top-[45%] -left-3" speed={-30} delay={0.6} />
+          <GlassChip icon={ShieldCheck} className="bottom-8 right-16" speed={-150} delay={2.4} />
+
+          <motion.div style={{ y: windowY }} className="relative">
+            <div
+              aria-hidden="true"
+              className="absolute -inset-x-6 -bottom-10 h-28 rounded-[50%] bg-gradient-to-r from-violet-500/25 via-fuchsia-500/20 to-teal-400/25 blur-2xl"
+            />
+            <div className="aero-float relative">
+              <div className="lg:[transform:perspective(1600px)_rotateX(9deg)_rotateY(-11deg)]">
+                <GlassWindow variant="hero" />
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Возможности ──────────────────────────────────────────────────── */
 
 const FEATURES = [
   {
     icon: PanelsTopLeft,
-    title: "Вкладки Golden Gate",
-    text: "Пилюли-вкладки с пружинными анимациями, компактный режим и обзор всех вкладок — геометрия как в Safari 27 на macOS Tahoe.",
+    title: "Вкладки-пилюли",
+    text: "Плавающие пилюли Golden Gate с пружинными анимациями и обзором всех вкладок — геометрия Safari 27.",
   },
   {
-    icon: Sparkles,
-    title: "Liquid glass по-настоящему",
-    text: "Многослойное размытие с насыщением, три уровня интенсивности стекла и настраиваемый акцентный цвет интерфейса.",
+    icon: Droplets,
+    title: "Жидкое стекло",
+    text: "Настоящий backdrop-blur с насыщением: хром окна парит над контентом, интенсивность настраивается ползунком.",
   },
   {
-    icon: SlidersHorizontal,
-    title: "Настройки как во взрослых браузерах",
-    text: "Полноценная страница aero://settings в отдельной вкладке: шесть разделов, экспорт и импорт конфигурации. Никаких боковых панелей.",
-  },
-  {
-    icon: LayoutGrid,
+    icon: LayoutDashboard,
     title: "Живые виджеты",
-    text: "Часы, погода с реальными данными open-meteo, календарь и быстрый доступ. Редактирование перетаскиванием, размеры S/M/L, свои фоны.",
+    text: "Часы, погода, календарь и быстрый доступ на стартовой странице aero://newtab — всё дышит.",
+  },
+  {
+    icon: Layers,
+    title: "Обзор вкладок",
+    text: "Все открытые страницы на одном стеклянном экране. Переключение — одним движением.",
+  },
+  {
+    icon: MoonStar,
+    title: "Тёмная и светлая тема",
+    text: "Тема следует за системой, а aurora-обои меняют настроение всего интерфейса.",
   },
   {
     icon: ShieldCheck,
-    title: "Приватность без лишних слов",
-    text: "История хранится локально, очистка данных сайтов в один клик, режим «стирать всё при выходе». Никакой телеметрии.",
+    title: "Блокировщик рекламы",
+    text: "Встроенная защита от трекеров и раздражающих баннеров — без единого расширения.",
+  },
+] as const;
+
+const EXTRA_FEATURES = [
+  {
+    icon: Cpu,
+    title: "Chromium внутри",
+    text: "Совместим со всеми сайтами и расширениями Chrome — движок остаётся настоящим.",
   },
   {
-    icon: Gauge,
-    title: "Лёгкое ядро",
-    text: "Electron/Chromium со стандартным User-Agent Chrome — сайты работают как в обычном браузере, без урезанных версий и блокировок.",
+    icon: Package,
+    title: "Портативная версия",
+    text: "Запускается без установки: с флешки, из папки, на любом компьютере с Windows.",
   },
 ] as const;
 
-const WIDGETS_POINTS = [
-  "Часы: аналоговые стрелки или циферблат, 12/24 ч, секунды",
-  "Погода: живые данные open-meteo, город, °C/°F, ветер и ощущается как",
-  "Календарь месяца с выделенной сегодняшней датой",
-  "Быстрый доступ: плитки с фавиконами, добавление и удаление",
-  "Режим «Изменить»: перетаскивание, размеры S/M/L, скрытие виджетов",
-  "Фон: шесть пресетов, свой URL и регулируемое затемнение",
-] as const;
-
-const INSTALL_STEPS = [
-  { n: "01", t: "Один экран", d: "Логотип, папка установки и опции ярлыков — всё на первой странице, как в Chrome" },
-  { n: "02", t: "Установить", d: "Прогресс копирования — без лицензий, страниц выбора режима и лишних кликов" },
-  { n: "03", t: "Готово", d: "Aero запускается сразу: галочка «Запустить» включена по умолчанию" },
-] as const;
-
-const CHANGELOG = [
-  "Полное QA-тестирование интерфейса: протыканы все кнопки, вкладки, виджеты и настройки — 14/14 проверок",
-  "Восстановление сессии: тумблер «Открывать новую вкладку при запуске» теперь работает — при выключении браузер открывает вкладки прошлого запуска",
-  "Ctrl+Shift+Tab переключает на предыдущую вкладку (раньше шел вперёд)",
-  "Исправлен редкий сбой при быстром закрытии нескольких вкладок подряд",
-  "localhost:порт в адресной строке открывается как сайт, а не как поисковый запрос",
-  "Сайт: вместо скриншотов — живые анимированные отрисовки интерфейса прямо на странице",
-] as const;
-
-/* ── Reveal: появление секций при скролле (opacity + подъём + расфокус) ── */
-function Reveal({
-  children,
-  delay = 0,
-  y = 44,
-  className,
-}: {
-  children: ReactNode;
-  delay?: number;
-  y?: number;
-  className?: string;
-}) {
+function FeatureIcon({ icon: Icon }: { icon: LucideIcon }) {
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y, filter: "blur(10px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      viewport={{ once: true, margin: "-70px" }}
-      transition={{ duration: 0.9, delay, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {children}
-    </motion.div>
+    <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.07] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-colors duration-500 group-hover:border-white/20">
+      <Icon className="h-5 w-5 text-zinc-200" strokeWidth={1.6} />
+    </span>
   );
 }
 
-/* ── Float: постоянное лёгкое «парение» элемента ── */
-function Float({
-  children,
-  amp = 8,
-  dur = 6,
-  delay = 0,
-  rot = 2,
-  className,
-}: {
-  children: ReactNode;
-  amp?: number;
-  dur?: number;
-  delay?: number;
-  rot?: number;
-  className?: string;
-}) {
+function Features() {
   return (
-    <motion.div
-      className={className}
-      animate={{ y: [-amp, amp, -amp], rotate: [-rot, rot, -rot] }}
-      transition={{ duration: dur, delay, repeat: Infinity, ease: "easeInOut" }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-export function LandingPage() {
-  /* ── общий прогресс страницы → тонкая полоса прогресса сверху ── */
-  const { scrollYProgress } = useScroll();
-  const progressX = useSpring(scrollYProgress, { stiffness: 140, damping: 28, mass: 0.4 });
-
-  /* ── hero: параллакс при скролле ── */
-  const heroRef = useRef<HTMLElement | null>(null);
-  const { scrollYProgress: heroP } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-  const sphereY = useTransform(heroP, [0, 1], [0, -170]);
-  const sphereScale = useTransform(heroP, [0, 1], [1, 0.8]);
-  const textY = useTransform(heroP, [0, 1], [0, 130]);
-  const textOpacity = useTransform(heroP, [0, 0.72], [1, 0]);
-  const glowAY = useTransform(heroP, [0, 1], [0, 260]);
-  const glowBY = useTransform(heroP, [0, 1], [0, -180]);
-
-  /* ── hero: наклон шара за курсором ── */
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const tiltX = useSpring(useTransform(my, [-0.5, 0.5], [10, -10]), { stiffness: 110, damping: 16 });
-  const tiltY = useSpring(useTransform(mx, [-0.5, 0.5], [-12, 12]), { stiffness: 110, damping: 16 });
-  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    mx.set((e.clientX - rect.left) / rect.width - 0.5);
-    my.set((e.clientY - rect.top) / rect.height - 0.5);
-  };
-
-  /* ── шапка: стекло уплотняется при скролле ── */
-  const [scrolled, setScrolled] = useState(false);
-  useMotionValueEvent(scrollYProgress, "change", () => {
-    setScrolled(window.scrollY > 24);
-  });
-
-  /* ── параллакс живых отрисовок в секциях ── */
-  const settingsRef = useRef<HTMLDivElement | null>(null);
-  const { scrollYProgress: settingsP } = useScroll({
-    target: settingsRef,
-    offset: ["start end", "end start"],
-  });
-  const settingsImgY = useTransform(settingsP, [0, 1], [36, -36]);
-
-  const widgetsRef = useRef<HTMLDivElement | null>(null);
-  const { scrollYProgress: widgetsP } = useScroll({
-    target: widgetsRef,
-    offset: ["start end", "end start"],
-  });
-  const widgetsImgY = useTransform(widgetsP, [0, 1], [-30, 30]);
-
-  return (
-    <div
-      onMouseMove={handleMouseMove}
-      className="relative flex min-h-screen flex-col overflow-x-clip bg-[#0a0a0d] text-zinc-100 selection:bg-[#ff9f0a] selection:text-black"
-    >
-      {/* полоса прогресса скролла */}
-      <motion.div
-        aria-hidden="true"
-        className="fixed inset-x-0 top-0 z-[70] h-[2px] origin-left bg-gradient-to-r from-[#ffd60a] via-[#ff9f0a] to-[#ff6482]"
-        style={{ scaleX: progressX }}
-      />
-
-      {/* фоновые световые пятна с параллаксом */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[900px]">
-        <motion.div
-          style={{ y: glowAY }}
-          className="absolute left-1/2 top-[-300px] h-[560px] w-[900px] -translate-x-1/2 rounded-full bg-[#ff9f0a]/[0.08] blur-[130px]"
-        />
-        <motion.div
-          style={{ y: glowBY }}
-          className="absolute right-[-220px] top-[120px] h-[440px] w-[540px] rounded-full bg-[#ff6482]/[0.06] blur-[140px]"
-        />
-        <div className="absolute left-[-200px] top-[320px] h-[400px] w-[480px] rounded-full bg-[#ffd60a]/[0.05] blur-[140px]" />
-      </div>
-
-      {/* ── Шапка ─────────────────────────────────────────── */}
-      <motion.header
-        className="fixed inset-x-0 top-0 z-50"
-        animate={{
-          backgroundColor: scrolled ? "rgba(10,10,13,0.78)" : "rgba(10,10,13,0)",
-          borderBottomColor: scrolled ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0)",
-        }}
-        style={{ backdropFilter: scrolled ? "blur(20px) saturate(1.5)" : "blur(0px)" }}
-      >
-        <div className="border-b border-inherit">
-          <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-            <a href="#top" className="flex items-center gap-2.5" aria-label="Aero — на главную">
-              <Image src="/aero-icon.png" alt="" width={26} height={26} className="h-[26px] w-[26px]" />
-              <span className="text-[15px] font-semibold tracking-tight">Aero</span>
-              <span className="ml-1 rounded-full border border-white/10 px-2 py-0.5 text-[11px] font-medium text-zinc-400">
-                {VERSION}
-              </span>
-            </a>
-            <nav aria-label="Основная навигация" className="hidden items-center gap-7 md:flex">
-              {NAV_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="text-[13px] text-zinc-400 transition-colors hover:text-zinc-100"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </nav>
-            <a
-              href="#install"
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#ff9f0a] px-4 py-1.5 text-[13px] font-semibold text-black transition-all hover:scale-[1.04] hover:bg-[#ffb340] active:scale-[0.98]"
-            >
-              Скачать
-              <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
-            </a>
+    <section id="features" className="relative px-6 py-24 sm:py-32" aria-labelledby="features-title">
+      <div className="mx-auto w-full max-w-6xl">
+        <Reveal>
+          <div id="features-title">
+            <SectionHeading
+              eyebrow="Возможности"
+              title="Всё нужное — из стекла"
+              text="Продуманные детали Safari 27 и сила Chromium. Интерфейс, который не стыдно показать."
+            />
           </div>
-        </div>
-      </motion.header>
+        </Reveal>
 
-      <main id="top" className="flex-1">
-        {/* ── Hero ─────────────────────────────────────────── */}
-        <section
-          ref={heroRef}
-          aria-labelledby="hero-title"
-          className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-4 pb-10 pt-28 text-center sm:px-6 sm:pt-36"
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-15%" }}
+          className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {/* стеклянный шар: параллакс скролла + наклон за мышью + парение */}
-          <motion.div
-            style={{ y: sphereY, scale: sphereScale }}
-            className="relative mb-10"
-          >
+          {FEATURES.map((feature) => (
+            <motion.article
+              key={feature.title}
+              variants={reveal}
+              className="group relative rounded-2xl border border-white/10 bg-white/[0.045] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl transition-[transform,border-color,background-color,box-shadow] duration-500 hover:-translate-y-1.5 hover:border-violet-300/30 hover:bg-white/[0.06] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.09),0_28px_70px_-24px_rgba(139,92,246,0.4)]"
+            >
+              <FeatureIcon icon={feature.icon} />
+              <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-zinc-100">
+                {feature.title}
+              </h3>
+              <p className="mt-2 text-pretty text-[14px] leading-relaxed text-zinc-400">{feature.text}</p>
+            </motion.article>
+          ))}
+        </motion.div>
+
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-15%" }}
+          className="mt-4 grid gap-4 sm:grid-cols-2"
+        >
+          {EXTRA_FEATURES.map((feature) => (
             <motion.div
-              style={{ rotateX: tiltX, rotateY: tiltY, transformPerspective: 900 }}
+              key={feature.title}
+              variants={reveal}
+              className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-lg transition-colors duration-500 hover:border-white/20 hover:bg-white/[0.05]"
+            >
+              <FeatureIcon icon={feature.icon} />
+              <div className="min-w-0">
+                <p className="text-[15px] font-medium text-zinc-200">{feature.title}</p>
+                <p className="mt-0.5 text-[13px] leading-relaxed text-zinc-500">{feature.text}</p>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ── «Живое стекло»: окно выпрямляется при скролле ────────────────── */
+
+function ShowcaseChip({
+  progress,
+  icon: Icon,
+  className,
+  xRange,
+  parallaxSpeed,
+  delay,
+}: {
+  progress: MotionValue<number>;
+  icon: LucideIcon;
+  className: string;
+  xRange: [number, number];
+  parallaxSpeed: number;
+  delay: number;
+}) {
+  const x = useTransform(progress, [0.3, 0.55], xRange);
+  const y = useScrollParallax(parallaxSpeed);
+  return (
+    <motion.div aria-hidden="true" style={{ x, y }} className={`pointer-events-none absolute z-20 hidden md:block ${className}`}>
+      <div className="aero-float" style={{ animationDelay: `${delay}s` }}>
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] shadow-[0_18px_50px_-16px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.09)] backdrop-blur-xl">
+          <Icon className="h-5 w-5 text-zinc-200" strokeWidth={1.6} />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function Showcase() {
+  const reduce = useReducedMotion();
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
+  });
+  const progress = useSpring(scrollYProgress, { stiffness: 80, damping: 24, mass: 0.7 });
+
+  const rotateX = useTransform(progress, [0.04, 0.36], reduce ? [0, 0] : [16, 0]);
+  const rotateY = useTransform(progress, [0.04, 0.36], reduce ? [0, 0] : [-10, 0]);
+  const scale = useTransform(progress, [0.04, 0.36], reduce ? [1, 1] : [0.9, 1]);
+  const hintOpacity = useTransform(progress, [0.05, 0.2], [1, 0]);
+
+  return (
+    <section
+      id="glass"
+      ref={sectionRef}
+      aria-labelledby="glass-title"
+      className={`relative px-6 ${reduce ? "py-24 sm:py-32" : "h-[200vh] md:h-[220vh]"}`}
+    >
+      <div
+        className={
+          reduce
+            ? ""
+            : "sticky top-0 flex h-screen flex-col justify-center overflow-hidden pb-6 pt-20"
+        }
+      >
+        <motion.div className="mx-auto w-full max-w-6xl">
+          <div id="glass-title" className="mx-auto max-w-2xl text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3.5 py-1.5 text-[12.5px] font-medium tracking-wide text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl">
+              Живое стекло
+            </span>
+            <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-zinc-100 sm:text-4xl">
+              Хром окна парит над контентом
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-pretty text-[14px] leading-relaxed text-zinc-400 sm:text-[15px]">
+              Прокрутите страницу: окно выпрямится, боковая панель выедет из-под стекла, вкладки
+              перестроятся. Ровно так живёт интерфейс Aero.
+            </p>
+          </div>
+
+          <div className="relative mx-auto mt-8 w-full max-w-4xl lg:mt-10">
+            <ShowcaseChip
+              progress={progress}
+              icon={Droplets}
+              className="-left-8 top-1/3"
+              xRange={[-10, -90]}
+              parallaxSpeed={-60}
+              delay={1.1}
+            />
+            <ShowcaseChip
+              progress={progress}
+              icon={Sparkles}
+              className="-right-6 top-6"
+              xRange={[10, 80]}
+              parallaxSpeed={-180}
+              delay={3.3}
+            />
+            <ShowcaseChip
+              progress={progress}
+              icon={ShieldCheck}
+              className="-right-10 bottom-8"
+              xRange={[0, 110]}
+              parallaxSpeed={-110}
+              delay={5.1}
+            />
+            <ShowcaseChip
+              progress={progress}
+              icon={LayoutDashboard}
+              className="-left-12 bottom-1/4"
+              xRange={[-20, -120]}
+              parallaxSpeed={-220}
+              delay={6.4}
+            />
+
+            <motion.div
+              style={{ rotateX, rotateY, scale, transformPerspective: 1600 }}
               className="relative"
             >
               <div
                 aria-hidden="true"
-                className="absolute inset-0 -z-10 scale-125 rounded-full bg-[radial-gradient(circle_at_50%_45%,rgba(255,159,10,0.22),transparent_65%)] blur-2xl"
+                className="absolute -inset-x-8 -bottom-12 h-32 rounded-[50%] bg-gradient-to-r from-violet-500/20 via-fuchsia-500/15 to-teal-400/20 blur-2xl"
               />
-              <Float amp={11} dur={7} rot={1.6}>
-                <Image
-                  src="/aero-icon.png"
-                  alt="Логотип Aero — стеклянный шар"
-                  width={340}
-                  height={340}
-                  priority
-                  sizes="(max-width: 640px) 240px, 340px"
-                  className="h-[240px] w-[240px] drop-shadow-[0_40px_70px_rgba(255,159,10,0.16)] sm:h-[340px] sm:w-[340px]"
-                />
-              </Float>
+              <GlassWindow variant="showcase" progress={progress} />
             </motion.div>
 
-            {/* парящие стеклянные чипы вокруг шара */}
-            <Float
-              amp={9}
-              dur={5.4}
-              delay={0.6}
-              rot={0}
-              className="absolute -left-14 top-10 hidden sm:block lg:-left-24"
-            >
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-[12.5px] text-zinc-200 shadow-[0_16px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[#30d158]" />
-                Погода обновилась · +18°
-              </span>
-            </Float>
-            <Float
-              amp={12}
-              dur={6.6}
-              delay={1.4}
-              rot={0}
-              className="absolute -right-10 top-24 hidden sm:block lg:-right-20"
-            >
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-[12.5px] text-zinc-200 shadow-[0_16px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-                <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-sans text-[11px]">Ctrl+T</kbd>
-                новая вкладка
-              </span>
-            </Float>
-            <Float
-              amp={10}
-              dur={6}
-              delay={2.2}
-              rot={0}
-              className="absolute -left-8 bottom-6 hidden sm:block lg:-left-16"
-            >
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-[12.5px] text-zinc-200 shadow-[0_16px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-                aero://settings
-              </span>
-            </Float>
-          </motion.div>
-
-          <motion.div style={{ y: textY, opacity: textOpacity }}>
-            <Reveal delay={0.05}>
-              <p className="text-[13px] font-medium uppercase tracking-[0.18em] text-[#ff9f0a]">
-                Aero для Windows · v{VERSION}
-              </p>
-            </Reveal>
-            <Reveal delay={0.12}>
-              <h1
-                id="hero-title"
-                className="mx-auto mt-4 max-w-3xl text-4xl font-semibold leading-[1.06] tracking-tight sm:text-6xl"
+            {!reduce ? (
+              <motion.p
+                style={{ opacity: hintOpacity }}
+                className="mt-6 text-center text-[12px] font-medium uppercase tracking-[0.2em] text-zinc-500"
               >
-                Браузер с интерфейсом{" "}
-                <span className="bg-gradient-to-r from-[#ffd60a] via-[#ff9f0a] to-[#ff6482] bg-clip-text text-transparent">
-                  Safari&nbsp;27.
-                </span>
-              </h1>
-            </Reveal>
-            <Reveal delay={0.2}>
-              <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-zinc-400 sm:text-lg">
-                Liquid glass, вкладки-пилюли Golden Gate, тёмная тема и живые виджеты.
-                Настоящий движок Chromium, установка в два клика — и стеклянный шар
-                вместо скучной иконки.
-              </p>
-            </Reveal>
-            <Reveal delay={0.28}>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-                <a
-                  href="#install"
-                  className="inline-flex h-11 items-center rounded-full bg-[#ff9f0a] px-7 text-sm font-semibold text-black transition-all hover:scale-[1.04] hover:bg-[#ffb340] active:scale-[0.98]"
-                >
-                  Скачать для Windows
-                </a>
-                <a
-                  href="#demo"
-                  className="inline-flex h-11 items-center rounded-full border border-white/12 px-7 text-sm font-medium text-zinc-300 transition-colors hover:border-white/25 hover:text-zinc-100"
-                >
-                  Живое демо
-                </a>
-              </div>
-              <p className="mt-4 text-xs text-zinc-600">Setup · Portable · Windows 10/11 · 64 бит</p>
-            </Reveal>
-          </motion.div>
-
-          {/* живая отрисовка новой вкладки */}
-          <Reveal delay={0.1} y={60} className="mt-14 w-full sm:mt-16">
-            <figure className="relative">
-              <div
-                aria-hidden="true"
-                className="absolute inset-x-8 -top-6 h-40 rounded-full bg-[#ff9f0a]/10 blur-[90px]"
-              />
-              <div className="relative overflow-hidden rounded-2xl border border-white/10 shadow-[0_50px_100px_-30px_rgba(0,0,0,0.9)]">
-                <NewtabMockup />
-              </div>
-              <figcaption className="mt-4 text-center text-xs text-zinc-600">
-                Интерфейс Aero {VERSION} — живая отрисовка окна браузера, не скриншот
-              </figcaption>
-            </figure>
-          </Reveal>
-        </section>
-
-        {/* ── Возможности ──────────────────────────────────── */}
-        <section
-          id="overview"
-          aria-labelledby="features-title"
-          className="mx-auto w-full max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6 sm:py-24"
-        >
-          <Reveal>
-            <p className="text-[13px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-              Возможности
-            </p>
-            <h2 id="features-title" className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
-              Всё, что ждёте от браузера 2026 года
-            </h2>
-          </Reveal>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map(({ icon: Icon, title, text }, i) => (
-              <Reveal key={title} delay={0.06 * (i % 3)} className="h-full">
-                <Float amp={4} dur={6 + (i % 3)} delay={i * 0.7} rot={0} className="h-full">
-                  <article
-                    className="group h-full rounded-2xl border border-white/[0.07] bg-white/[0.03] p-6 backdrop-blur-sm transition-colors hover:border-white/[0.14] hover:bg-white/[0.05]"
-                    style={{ transform: "translateZ(0)" }}
-                  >
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-[#ff9f0a]/10 text-[#ff9f0a] transition-colors group-hover:bg-[#ff9f0a]/[0.16]">
-                      <Icon className="h-5 w-5" aria-hidden="true" />
-                    </span>
-                    <h3 className="mt-4 text-[15px] font-semibold tracking-tight text-zinc-100">{title}</h3>
-                    <p className="mt-2 text-[13.5px] leading-relaxed text-zinc-400">{text}</p>
-                  </article>
-                </Float>
-              </Reveal>
-            ))}
+                Прокручивайте — стекло выпрямится
+              </motion.p>
+            ) : null}
           </div>
-        </section>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
 
-        {/* ── Демо ─────────────────────────────────────────── */}
-        <section
-          id="demo"
-          aria-labelledby="demo-title"
-          className="border-t border-white/[0.06] bg-[#0d0d11]"
-        >
-          <div className="mx-auto w-full max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6 sm:py-24">
-            <Reveal>
-              <p className="text-[13px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-                Демо
-              </p>
-              <h2 id="demo-title" className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
-                Попробуйте интерфейс прямо здесь
-              </h2>
-              <p className="mt-4 max-w-2xl text-base leading-relaxed text-zinc-400">
-                Веб-версия Aero с теми же виджетами и настройками. Шестерёнка в
-                тулбаре или Ctrl+, открывает aero://settings; кнопка «Изменить»
-                включает режим редактирования виджетов.
-              </p>
-            </Reveal>
-            <Reveal delay={0.15} y={56} className="mt-10">
-              <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#101014] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.8)]">
-                <iframe
-                  src="/aero/index.html"
-                  className="h-[600px] w-full border-0"
-                  title="Живое демо интерфейса Aero"
-                  loading="lazy"
-                />
-              </div>
-            </Reveal>
+/* ── Скачать ──────────────────────────────────────────────────────── */
+
+function DownloadSection() {
+  return (
+    <section id="download" className="relative px-6 py-24 sm:py-32" aria-labelledby="download-title">
+      <div className="mx-auto w-full max-w-6xl">
+        <Reveal>
+          <div id="download-title">
+            <SectionHeading
+              eyebrow="Скачать"
+              title="Aero для Windows"
+              text="Установщик или портативная версия — без аккаунтов, подписок и телеметрии."
+            />
           </div>
-        </section>
+        </Reveal>
 
-        {/* ── Настройки ────────────────────────────────────── */}
-        <section
-          id="settings"
-          aria-labelledby="settings-title"
-          className="border-t border-white/[0.06]"
-        >
-          <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-2 lg:gap-16">
-            <div>
-              <Reveal>
-                <p className="text-[13px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-                  Настройки
+        <Reveal className="mt-12">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_50px_120px_-40px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl sm:p-10">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-semibold tracking-tight text-zinc-100">Свежие сборки</h3>
+                <p className="mt-1 text-[13.5px] text-zinc-500">
+                  Windows 10/11 · x64 · список обновляется автоматически
                 </p>
-                <h2 id="settings-title" className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Как в нормальном браузере
-                </h2>
-                <p className="mt-4 text-base leading-relaxed text-zinc-400">
-                  Никаких боковых панелей поверх страницы. Настройки Aero —
-                  отдельная вкладка aero://settings с окном в стиле Safari и
-                  иконочной навигацией по разделам.
-                </p>
-              </Reveal>
-              <ul className="mt-8 flex flex-col">
-                {[
-                  "Шесть разделов: общие, оформление, поиск, виджеты, приватность, о браузере",
-                  "Тёмная тема по умолчанию; светлая и автоматическая — в один клик",
-                  "Акцентный цвет, интенсивность стекла, анимации",
-                  "Экспорт и импорт настроек в JSON",
-                ].map((point, i) => (
-                  <Reveal key={point} delay={0.08 * i} y={26}>
-                    <li className="flex items-start gap-3 border-b border-white/[0.06] py-3.5 text-[15px] leading-relaxed text-zinc-300 last:border-0">
-                      <span aria-hidden="true" className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-[#ff9f0a]" />
-                      {point}
-                    </li>
-                  </Reveal>
-                ))}
-              </ul>
+              </div>
+              <span className="rounded-full border border-violet-300/20 bg-violet-400/10 px-3.5 py-1.5 text-[12.5px] font-medium tabular-nums text-violet-200">
+                Версия {VERSION}
+              </span>
             </div>
-            <Reveal delay={0.1} y={56}>
-              <figure>
-                <div ref={settingsRef} className="relative">
-                  <motion.div style={{ y: settingsImgY }}>
-                    <div className="overflow-hidden rounded-2xl border border-white/10 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.8)]">
-                      <SettingsMockup />
-                    </div>
-                  </motion.div>
-                </div>
-                <figcaption className="mt-3 text-center text-xs text-zinc-600">
-                  aero://settings — живая отрисовка окна настроек
-                </figcaption>
-              </figure>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ── Виджеты ──────────────────────────────────────── */}
-        <section
-          id="widgets"
-          aria-labelledby="widgets-title"
-          className="border-t border-white/[0.06] bg-[#0d0d11]"
-        >
-          <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-2 lg:gap-16">
-            <Reveal delay={0.1} y={56} className="order-2 lg:order-1">
-              <figure>
-                <div ref={widgetsRef} className="relative">
-                  <motion.div style={{ y: widgetsImgY }}>
-                    <div className="overflow-hidden rounded-2xl border border-white/10 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.8)]">
-                      <WidgetSettingsMockup />
-                    </div>
-                  </motion.div>
-                </div>
-                <figcaption className="mt-3 text-center text-xs text-zinc-600">
-                  Настройки виджетов — живая отрисовка окна: фон, раскладка и каждый виджет по отдельности
-                </figcaption>
-              </figure>
-            </Reveal>
-            <div className="order-1 lg:order-2">
-              <Reveal>
-                <p className="text-[13px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-                  Виджеты
-                </p>
-                <h2 id="widgets-title" className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Новая вкладка как рабочий стол
-                </h2>
-                <p className="mt-4 text-base leading-relaxed text-zinc-400">
-                  Не декорация, а инструмент: погода обновляется сама, часы идут
-                  с секундами, ссылки открываются в один клик. Всё настраивается
-                  мышкой — без единой строчки конфигов.
-                </p>
-              </Reveal>
-              <ul className="mt-8 flex flex-col">
-                {WIDGETS_POINTS.map((point, i) => (
-                  <Reveal key={point} delay={0.07 * i} y={26}>
-                    <li className="flex items-start gap-3 border-b border-white/[0.06] py-3.5 text-[15px] leading-relaxed text-zinc-300 last:border-0">
-                      <span aria-hidden="true" className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-[#ff9f0a]" />
-                      {point}
-                    </li>
-                  </Reveal>
-                ))}
-              </ul>
+            <div className="mt-8">
+              <DesktopDownloads />
             </div>
           </div>
-        </section>
+        </Reveal>
 
-        {/* ── Установка + загрузки ─────────────────────────── */}
-        <section
-          id="install"
-          aria-labelledby="install-title"
-          className="border-t border-white/[0.06]"
-        >
-          <div className="mx-auto grid w-full max-w-6xl gap-14 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
-            <div>
-              <Reveal>
-                <p className="text-[13px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-                  Установка
-                </p>
-                <h2 id="install-title" className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Установка в два клика
-                </h2>
-                <p className="mt-4 text-base leading-relaxed text-zinc-400">
-                  Никаких лицензий, сайдбаров и семи страниц визарда — один
-                  аккуратный экран с логотипом и опциями, как у флагманских
-                  браузеров.
-                </p>
-              </Reveal>
-              <ol className="mt-8 flex flex-col">
-                {INSTALL_STEPS.map((step, i) => (
-                  <Reveal key={step.n} delay={0.08 * i} y={26}>
-                    <li className="flex items-start gap-4 border-b border-white/[0.06] py-3.5 last:border-0">
-                      <span className="mt-0.5 w-7 shrink-0 text-sm font-semibold tabular-nums text-zinc-600">
-                        {step.n}
-                      </span>
-                      <span className="text-[15px] leading-relaxed text-zinc-300">
-                        <b className="font-semibold text-zinc-100">{step.t}</b>
-                        <span className="text-zinc-500"> — {step.d}</span>
-                      </span>
-                    </li>
-                  </Reveal>
-                ))}
-              </ol>
-              <Reveal delay={0.2}>
-                <p className="mt-6 flex items-center gap-2 text-xs leading-relaxed text-zinc-600">
-                  <AppWindow className="h-3.5 w-3.5" aria-hidden="true" />
-                  Windows 10/11, 64 бит. Установка для текущего пользователя, без прав администратора.
-                </p>
-              </Reveal>
-            </div>
-            <Reveal delay={0.12} y={56}>
-              <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 sm:p-8">
-                <h3 className="flex items-center gap-2 text-[15px] font-semibold text-zinc-100">
-                  <Wand2 className="h-4 w-4 text-[#ff9f0a]" aria-hidden="true" />
-                  Скачать Aero {VERSION}
+        <Reveal className="mt-6">
+          <div className="rounded-3xl border border-amber-300/20 bg-amber-300/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-8">
+            <div className="flex items-start gap-4 sm:gap-5">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-300/25 bg-amber-300/[0.08]">
+                <KeyRound className="h-5 w-5 text-amber-200" strokeWidth={1.7} />
+              </span>
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold tracking-tight text-zinc-100">
+                  Уберите окно «Открыть всё равно»
                 </h3>
-                <p className="mt-1 text-[13px] text-zinc-500">
-                  Официальные сборки для Windows. Свежая версия — вверху списка.
+                <p className="mt-2 max-w-2xl text-pretty text-[14.5px] leading-relaxed text-zinc-400">
+                  Сборки подписаны сертификатом Aero Team (self-signed). Скачайте файл сертификата и
+                  один раз запустите установщик от имени администратора — после этого Windows
+                  перестанет показывать «Неизвестный издатель» для Aero.
                 </p>
-                <div className="mt-6">
-                  <DesktopDownloads />
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <a
+                    href="/Aero-CodeSign.cer"
+                    download
+                    className="inline-flex h-10 items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-5 text-[13.5px] font-medium text-zinc-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition-colors hover:border-white/30 hover:bg-white/[0.1]"
+                  >
+                    <Download className="h-3.5 w-3.5" strokeWidth={1.8} />
+                    Файл сертификата
+                  </a>
+                  <a
+                    href="/Установить-сертификат-Aero.cmd"
+                    download
+                    className="inline-flex h-10 items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-5 text-[13.5px] font-medium text-zinc-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition-colors hover:border-white/30 hover:bg-white/[0.1]"
+                  >
+                    <Download className="h-3.5 w-3.5" strokeWidth={1.8} />
+                    Установщик сертификата
+                  </a>
                 </div>
-              </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ── Что нового ───────────────────────────────────── */}
-        <section
-          id="changelog"
-          aria-labelledby="changelog-title"
-          className="border-t border-white/[0.06] bg-[#0d0d11]"
-        >
-          <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-            <Reveal>
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 id="changelog-title" className="text-2xl font-semibold tracking-tight">
-                  Что нового в {VERSION}
-                </h2>
-                <span className="text-sm text-zinc-600">15 ноября 2026</span>
-              </div>
-            </Reveal>
-            <ul className="mt-6 flex flex-col">
-              {CHANGELOG.map((item, i) => (
-                <Reveal key={item} delay={0.06 * i} y={24}>
-                  <li className="flex items-start gap-3 border-b border-white/[0.06] py-3.5 text-[15px] leading-relaxed text-zinc-300 last:border-0">
-                    <span aria-hidden="true" className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-[#ff9f0a]" />
-                    {item}
+                <ul className="mt-5 space-y-1.5 text-[13px] leading-relaxed text-zinc-500">
+                  <li>
+                    SmartScreen может один раз спросить о новом скачанном файле — нажмите
+                    «Подробнее → Выполнить в любом случае».
                   </li>
-                </Reveal>
-              ))}
-            </ul>
+                  <li>
+                    Честное примечание: полностью убрать предупреждение для всех пользователей может
+                    только платный сертификат (EV/OV).
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
-        </section>
-      </main>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
 
-      {/* ── Подвал ────────────────────────────────────────── */}
-      <footer className="mt-auto border-t border-white/[0.06]">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div className="flex items-center gap-2.5">
-            <Image src="/aero-icon.png" alt="" width={22} height={22} className="h-[22px] w-[22px]" />
-            <span className="text-sm text-zinc-500">
-              Aero {VERSION} · работает на Electron/Chromium · не связана с Apple Inc.
-            </span>
+/* ── Ченджлог ─────────────────────────────────────────────────────── */
+
+const CHANGELOG = [
+  {
+    version: "2.3.10",
+    current: true,
+    text: "Настоящее жидкое стекло: хром окна парит над контентом, интенсивность blur — по настройке. Подпись сборок сертификатом.",
+  },
+  {
+    version: "2.3.9",
+    current: false,
+    text: "QA 14/14, восстановление сессии.",
+  },
+  {
+    version: "2.3.8",
+    current: false,
+    text: "Aera → Aero, новый логотип — стеклянный шар.",
+  },
+  {
+    version: "2.3.7",
+    current: false,
+    text: "Установщик в стиле Chrome, исправления навигации.",
+  },
+] as const;
+
+function Changelog() {
+  return (
+    <section className="relative px-6 pb-24 sm:pb-32" aria-labelledby="changelog-title">
+      <div className="mx-auto w-full max-w-4xl">
+        <Reveal>
+          <div id="changelog-title">
+            <SectionHeading
+              eyebrow="История версий"
+              title="Что нового"
+              text="Каждая сборка — шаг ближе к Safari 27 на Windows."
+            />
           </div>
-          <span className="text-sm text-zinc-600">© 2026 Aero Team</span>
+        </Reveal>
+        <motion.ul
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-15%" }}
+          className="mt-12 flex flex-col gap-3"
+        >
+          {CHANGELOG.map((entry) => (
+            <motion.li
+              key={entry.version}
+              variants={reveal}
+              className="flex flex-col gap-2.5 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-md transition-colors duration-500 hover:border-white/[0.16] hover:bg-white/[0.05] sm:flex-row sm:items-center sm:gap-6 sm:p-5"
+            >
+              <span className="flex shrink-0 items-center gap-2.5">
+                <span
+                  className={`rounded-lg px-2.5 py-1 text-[12.5px] font-semibold tabular-nums ${
+                    entry.current
+                      ? "border border-violet-300/25 bg-violet-400/15 text-violet-200"
+                      : "bg-white/[0.07] text-zinc-300"
+                  }`}
+                >
+                  {entry.version}
+                </span>
+                {entry.current ? (
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-violet-300/80">
+                    текущая
+                  </span>
+                ) : null}
+              </span>
+              <p className="text-[14px] leading-relaxed text-zinc-400">{entry.text}</p>
+            </motion.li>
+          ))}
+        </motion.ul>
+      </div>
+    </section>
+  );
+}
+
+/* ── Футер (прилипает к низу) ─────────────────────────────────────── */
+
+function SiteFooter() {
+  return (
+    <footer className="mt-auto border-t border-white/[0.06] bg-black/20 backdrop-blur-xl">
+      <div className="mx-auto grid w-full max-w-6xl gap-8 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-12 sm:grid-cols-[1.4fr_1fr]">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <Image
+              src="/aero-icon.png"
+              alt="Логотип Aero — стеклянный шар"
+              width={28}
+              height={28}
+              className="h-7 w-7"
+            />
+            <span className="text-[16px] font-semibold tracking-tight text-zinc-100">Aero</span>
+            <span aria-hidden="true" className="h-4 w-px bg-white/10" />
+            <span className="text-[13.5px] text-zinc-400">браузер в стиле Safari 27</span>
+          </div>
+          <p className="mt-4 max-w-md text-[12.5px] leading-relaxed text-zinc-500">
+            Aero не связан с Apple; Safari и macOS — товарные знаки Apple Inc. Интерфейс является
+            художественной стилизацией на движке Chromium.
+          </p>
         </div>
-      </footer>
-    </div>
+        <nav aria-label="Ссылки" className="flex flex-col items-start gap-3 text-[14px] sm:items-end">
+          <a
+            href="https://github.com/F1xYx/aero"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-zinc-300 transition-colors hover:text-white"
+          >
+            GitHub — F1xYx/aero
+            <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={1.8} />
+          </a>
+          <a href="#top" className="text-zinc-500 transition-colors hover:text-zinc-300">
+            Наверх
+          </a>
+          <span className="text-[13px] tabular-nums text-zinc-600">© 2026 Aero Team</span>
+        </nav>
+      </div>
+    </footer>
+  );
+}
+
+/* ═══ Корневая страница ════════════════════════════════════════════ */
+
+export function LandingPage() {
+  return (
+    <MotionConfig reducedMotion="user">
+      <div
+        id="top"
+        className="relative flex min-h-screen flex-col overflow-x-clip bg-[#0a0a0d] text-zinc-100 antialiased"
+      >
+        <AuroraBackground />
+        <SiteHeader />
+        <main className="flex-1">
+          <Hero />
+          <Features />
+          <Showcase />
+          <DownloadSection />
+          <Changelog />
+        </main>
+        <SiteFooter />
+      </div>
+    </MotionConfig>
   );
 }

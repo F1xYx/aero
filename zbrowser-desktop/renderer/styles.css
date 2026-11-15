@@ -9,6 +9,7 @@
           "Segoe UI", system-ui, sans-serif;
   --titlebar-h: 46px;
   --toolbar-h: 46px;
+  --chrome-h: calc(var(--titlebar-h) + var(--toolbar-h));
   --radius-tab: 9px;
   --radius-card: 20px;
   --spring: cubic-bezier(.32, .92, .34, 1);
@@ -18,8 +19,8 @@
 html[data-theme="dark"] {
   --bg: #16161a;
   --bg-solid: #16161a;
-  --chrome-tint: rgba(24, 24, 29, .82);
-  --chrome-tint-strong: rgba(18, 18, 23, .94);
+  --chrome-tint: rgba(22, 22, 27, .64);
+  --chrome-tint-strong: rgba(16, 16, 21, .8);
   --glass: rgba(255, 255, 255, .07);
   --glass-hover: rgba(255, 255, 255, .11);
   --glass-active: rgba(255, 255, 255, .16);
@@ -42,8 +43,8 @@ html[data-theme="dark"] {
 html[data-theme="light"] {
   --bg: #f2f2f4;
   --bg-solid: #f2f2f4;
-  --chrome-tint: rgba(246, 246, 249, .8);
-  --chrome-tint-strong: rgba(252, 252, 254, .94);
+  --chrome-tint: rgba(247, 247, 250, .62);
+  --chrome-tint-strong: rgba(252, 252, 255, .8);
   --glass: rgba(255, 255, 255, .55);
   --glass-hover: rgba(255, 255, 255, .75);
   --glass-active: rgba(0, 0, 0, .09);
@@ -68,6 +69,16 @@ html[data-glass="low"]   .glass-blur { backdrop-filter: blur(12px) saturate(140%
 html[data-glass="medium"].glass-blur, html[data-glass="medium"] .glass-blur { backdrop-filter: blur(24px) saturate(160%); }
 html[data-glass="high"]  .glass-blur { backdrop-filter: blur(44px) saturate(180%); }
 
+/* floating chrome follows the same intensity setting (default = high) */
+html[data-glass="low"] #titlebar, html[data-glass="low"] #toolbar {
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+}
+html[data-glass="medium"] #titlebar, html[data-glass="medium"] #toolbar {
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+
 html[data-animations="off"] * { animation: none !important; transition: none !important; }
 
 html, body { height: 100%; overflow: hidden; }
@@ -81,20 +92,22 @@ body {
   cursor: default;
 }
 
-#app { display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
+#app { position: relative; height: 100vh; background: var(--bg); }
 
 svg { fill: none; stroke: currentColor; width: 17px; height: 17px; flex-shrink: 0; }
 
-/* ═══════════════ Titlebar ═══════════════ */
+/* ═══════════════ Titlebar — floating liquid-glass chrome over content ═══════════════ */
 #titlebar {
   display: flex; align-items: center; gap: 6px;
   height: var(--titlebar-h);
   padding: 0 8px 0 12px;
   background: var(--chrome-tint);
+  backdrop-filter: blur(40px) saturate(170%);
+  -webkit-backdrop-filter: blur(40px) saturate(170%);
   border-bottom: 1px solid rgba(0, 0, 0, .25);
-  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
   -webkit-app-region: drag;
-  position: relative;
+  position: absolute; top: 0; left: 0; right: 0;
   z-index: 40;
 }
 html[data-theme="light"] #titlebar { border-bottom-color: rgba(0,0,0,.1); }
@@ -192,13 +205,17 @@ html[data-web-mode="on"] .win-buttons, html[data-web-mode="on"] .traffic-lights 
 .wb-close:hover { background: #e81123; color: #fff; }
 #app.maximized #wb-max-icon rect:nth-child(2) { display: block; }
 
-/* ═══════════════ Toolbar ═══════════════ */
+/* ═══════════════ Toolbar — floating liquid-glass chrome over content ═══════════════ */
 #toolbar {
   display: flex; align-items: center; gap: 8px;
   height: var(--toolbar-h); padding: 0 12px;
   background: var(--chrome-tint-strong);
+  backdrop-filter: blur(40px) saturate(170%);
+  -webkit-backdrop-filter: blur(40px) saturate(170%);
   border-bottom: 1px solid rgba(0, 0, 0, .22);
-  flex-shrink: 0; position: relative; z-index: 39;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+  position: absolute; top: var(--titlebar-h); left: 0; right: 0;
+  z-index: 39;
 }
 html[data-theme="light"] #toolbar { border-bottom-color: rgba(0,0,0,.08); }
 
@@ -275,18 +292,18 @@ html[data-theme="light"] .addressbar:focus-within { border-color: rgba(0,0,0,.2)
 .suggest-item .si-type { color: var(--text-tertiary); font-size: 11px; }
 .suggest-sep { height: 1px; background: var(--glass-border); margin: 5px 8px; }
 
-/* ═══════════════ Views ═══════════════ */
-#views { flex: 1; position: relative; overflow: hidden; background: var(--bg); }
+/* ═══════════════ Views — full-window layer under floating chrome ═══════════════ */
+#views { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
 .view { position: absolute; inset: 0; display: none; }
 .view.active { display: flex; flex-direction: column; }
-webview, .view iframe.web-frame { flex: 1; width: 100%; height: 100%; border: none; background: #fff; }
+webview, .view iframe.web-frame { flex: 1; width: 100%; height: calc(100% - var(--chrome-h)); margin-top: var(--chrome-h); border: none; background: #fff; }
 html[data-theme="dark"] webview { background: #1a1a1e; }
 .view iframe.web-frame { background: #fff; }
 .view-entrance { animation: viewIn .3s var(--spring); }
 @keyframes viewIn { from { opacity: 0; transform: scale(.985); } }
 
 /* internal pages */
-.page { flex: 1; overflow: hidden; position: relative; display: flex; flex-direction: column; min-height: 0; }
+.page { flex: 1; overflow: hidden; position: relative; display: flex; flex-direction: column; min-height: 0; margin-top: var(--chrome-h); }
 
 /* ═══════════════ New Tab — flagship widgets ═══════════════ */
 .newtab {
@@ -296,12 +313,12 @@ html[data-theme="dark"] webview { background: #1a1a1e; }
 .newtab::before { content: ""; position: fixed; inset: 0; z-index: 0; }
 
 .wp {
-  position: absolute; inset: 0; z-index: 0;
+  position: fixed; inset: 0; z-index: 0;
   background-size: cover; background-position: center;
   transition: filter .4s, opacity .4s;
 }
-.newtab .wp-dim { position: absolute; inset: 0; z-index: 0; background: rgba(0,0,0,var(--wp-dim, .2)); }
-.newtab-inner { position: relative; z-index: 1; width: 100%; max-width: 1080px; padding: 44px 32px 60px; display: flex; flex-direction: column; align-items: center; }
+.newtab .wp-dim { position: fixed; inset: 0; z-index: 0; background: rgba(0,0,0,var(--wp-dim, .2)); }
+.newtab-inner { position: relative; z-index: 1; width: 100%; max-width: 1080px; padding: 24px 32px 60px; display: flex; flex-direction: column; align-items: center; }
 
 /* wallpapers */
 .wp-aurora    { background: radial-gradient(120% 90% at 20% 10%, #2b1055 0%, transparent 55%), radial-gradient(110% 100% at 85% 20%, #0f3460 0%, transparent 60%), radial-gradient(130% 110% at 60% 100%, #7597de33 0%, transparent 55%), linear-gradient(150deg, #16161f 0%, #1d1b2e 45%, #171722 100%); }
@@ -311,6 +328,7 @@ html[data-theme="dark"] webview { background: #1a1a1e; }
 .wp-graphite  { background: radial-gradient(130% 100% at 30% 10%, #ffffff0d 0%, transparent 50%), linear-gradient(160deg, #1a1a1e 0%, #202026 55%, #17171b 100%); }
 .wp-rose      { background: radial-gradient(120% 90% at 25% 12%, #8f2d5630 0%, transparent 55%), radial-gradient(110% 100% at 80% 85%, #b0306022 0%, transparent 60%), linear-gradient(150deg, #1a1016 0%, #241521 50%, #161014 100%); }
 html[data-theme="light"] .newtab { background: #eef0f4; }
+html[data-theme="light"] .newtab::before { background: #eef0f4; }
 /* light-theme wallpapers: same geometry, bright daylight palette so dark text stays readable */
 html[data-theme="light"] .wp { opacity: 1; }
 html[data-theme="light"] .wp-aurora   { background: radial-gradient(120% 90% at 20% 10%, #ffe3c2 0%, transparent 55%), radial-gradient(110% 100% at 85% 20%, #ffd9e8 0%, transparent 60%), radial-gradient(130% 110% at 60% 100%, #d9e6ff66 0%, transparent 55%), linear-gradient(150deg, #fdf6ee 0%, #f4eef8 45%, #eef1f7 100%); }
@@ -606,11 +624,16 @@ html[data-theme="light"] .ws-row { background: rgba(0,0,0,.045); }
 .settings-page {
   flex: 1; overflow-y: auto; padding: 34px 20px 60px;
   display: flex; justify-content: center; align-items: flex-start;
+  position: relative;
+  background: transparent;
+}
+.settings-page::before {
+  content: ""; position: fixed; inset: 0; z-index: -1;
   background:
     radial-gradient(90% 60% at 50% 0%, color-mix(in srgb, var(--accent) 7%, transparent) 0%, transparent 65%),
     var(--bg);
 }
-html[data-theme="light"] .settings-page {
+html[data-theme="light"] .settings-page::before {
   background:
     radial-gradient(90% 60% at 50% 0%, color-mix(in srgb, var(--accent) 5%, transparent) 0%, transparent 60%),
     #f6f6f8;

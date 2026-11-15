@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Aero — браузер в стиле Safari 27",
+  title: "Aero — браузер с интерфейсом Safari 27 для Windows",
   description:
-    "Браузер для Windows с интерфейсом Safari 27 (Golden Gate): liquid glass, вкладки-пилюли, тёмная тема, виджеты и кастомный установщик.",
+    "Жидкое стекло, вкладки-пилюли Golden Gate и живые виджеты: Aero приносит Safari 27 на Windows на движке Chromium. Установщик или портативная версия без установки.",
   icons: {
     icon: "/aero-icon.png",
   },

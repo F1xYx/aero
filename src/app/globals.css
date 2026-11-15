@@ -130,3 +130,118 @@
     scroll-padding-top: 5.5rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Aero landing — «Liquid Glass» additions.
+   Только дополнения: тема выше не тронута. Типографика — системный
+   стек; aurora-блобы, зерно и «парящие» анимации — только transform/
+   opacity (без layout-thrashing).
+   ═══════════════════════════════════════════════════════════════════ */
+
+body {
+  font-family:
+    -apple-system,
+    "SF Pro Display",
+    "SF Pro Text",
+    "Segoe UI Variable Display",
+    "Segoe UI",
+    system-ui,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+/* Зерно/шум поверх aurora (SVG feTurbulence data-URI) */
+.aero-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  opacity: 0.045;
+}
+
+/* Дрейф aurora-блобов (20–30s, только transform) */
+@keyframes aero-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(90px, 60px, 0) scale(1.12);
+  }
+  66% {
+    transform: translate3d(-50px, -30px, 0) scale(0.94);
+  }
+}
+@keyframes aero-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  40% {
+    transform: translate3d(-80px, 90px, 0) scale(0.92);
+  }
+  70% {
+    transform: translate3d(60px, -40px, 0) scale(1.15);
+  }
+}
+@keyframes aero-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.95);
+  }
+  50% {
+    transform: translate3d(70px, -80px, 0) scale(1.18);
+  }
+}
+.aero-blob-a {
+  animation: aero-drift-a 26s ease-in-out infinite;
+  will-change: transform;
+}
+.aero-blob-b {
+  animation: aero-drift-b 31s ease-in-out infinite;
+  will-change: transform;
+}
+.aero-blob-c {
+  animation: aero-drift-c 22s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Парение стеклянных элементов (6–8s) */
+@keyframes aero-float {
+  0%,
+  100% {
+    transform: translateY(-8px);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+.aero-float {
+  animation: aero-float 7.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Живая секундная стрелка виджета-часов в GlassWindow */
+@keyframes aero-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.aero-second-hand {
+  animation: aero-spin 10s linear infinite;
+  will-change: transform;
+}
+
+/* Уважение к reduced motion: отключаем всё декоративное движение */
+@media (prefers-reduced-motion: reduce) {
+  .aero-blob-a,
+  .aero-blob-b,
+  .aero-blob-c,
+  .aero-float,
+  .aero-second-hand {
+    animation: none !important;
+  }
+  html {
+    scroll-behavior: auto !important;
+  }
+}
