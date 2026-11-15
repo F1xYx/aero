@@ -1,8 +1,8 @@
-/* Aera — New Tab page: flagship widgets + widget settings */
+/* Aero — New Tab page: flagship widgets + widget settings */
 (function () {
   'use strict';
 
-  var Store = window.AeraStore;
+  var Store = window.AeroStore;
 
   /* ═══════════ helpers ═══════════ */
   function el(tag, cls, text) {
@@ -38,9 +38,9 @@
   ];
 
   /* ═══════════ modal helper ═══════════ */
-  window.AeraModal = {
+  window.AeroModal = {
     open: function (title, build) {
-      window.AeraModal.close();
+      window.AeroModal.close();
       var root = document.getElementById('modal-root');
       var bd = el('div', 'modal-backdrop');
       var m = el('div', 'modal');
@@ -48,13 +48,13 @@
       var h = el('h2', null, title);
       var x = el('button', 'ws-btn');
       x.appendChild(svg('M4.5 4.5 L11.5 11.5 M11.5 4.5 L4.5 11.5', { 'stroke-width': 1.6 }));
-      x.addEventListener('click', function () { window.AeraModal.close(); });
+      x.addEventListener('click', function () { window.AeroModal.close(); });
       head.appendChild(h); head.appendChild(x);
       var body = el('div', 'modal-body');
-      if (build) build(body, function () { window.AeraModal.close(); });
+      if (build) build(body, function () { window.AeroModal.close(); });
       m.appendChild(head); m.appendChild(body);
       bd.appendChild(m);
-      bd.addEventListener('mousedown', function (e) { if (e.target === bd) window.AeraModal.close(); });
+      bd.addEventListener('mousedown', function (e) { if (e.target === bd) window.AeroModal.close(); });
       root.appendChild(bd);
       return body;
     },
@@ -252,7 +252,7 @@
     add.appendChild(af);
     add.appendChild(el('div', 'link-name', 'Добавить'));
     add.addEventListener('click', function () {
-      var body = window.AeraModal.open('Новая ссылка', function (b, close) {
+      var body = window.AeroModal.open('Новая ссылка', function (b, close) {
         var tIn = el('input', 'inp'); tIn.placeholder = 'Название'; tIn.style.width = '100%';
         var uIn = el('input', 'inp'); uIn.placeholder = 'https://…'; uIn.style.width = '100%'; uIn.style.marginTop = '8px';
         var row = el('div', 'field-row'); row.style.display = 'block'; row.appendChild(tIn); row.appendChild(uIn);
@@ -284,7 +284,7 @@
     links:    { name: 'Быстрый доступ', icon: '🔗' }
   };
 
-  window.AeraNewTab = {
+  window.AeroNewTab = {
     render: function (container, ctx) {
       ctx = ctx || {};
       var navigate = ctx.navigate || function (u) {};
@@ -422,7 +422,7 @@
       grid.style.setProperty('--cols', String(cfg.columns || 4));
       inner.appendChild(grid);
 
-      var refresh = function () { window.AeraNewTab.render(container, ctx); };
+      var refresh = function () { window.AeroNewTab.render(container, ctx); };
 
       function renderWidgets() {
         grid.innerHTML = '';
@@ -518,8 +518,8 @@
       bCfg.appendChild(svg('M8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M12.4 3.6l-1.2 1.2M4.8 11.2l-1.2 1.2', { 'stroke-width': 1.4, 'stroke-linecap': 'round' }));
       bCfg.appendChild(el('span', null, 'Настройки виджетов'));
       bCfg.addEventListener('click', function () {
-        window.AeraModal.open('Настройки виджетов', function (body) {
-          window.AeraWidgetsSettings.render(body, { refresh: function () { refresh(); } });
+        window.AeroModal.open('Настройки виджетов', function (body) {
+          window.AeroWidgetsSettings.render(body, { refresh: function () { refresh(); } });
         });
       });
       tools.appendChild(bEdit);
@@ -533,7 +533,7 @@
   };
 
   /* ═══════════ Widget settings (shared: modal + settings page) ═══════════ */
-  window.AeraWidgetsSettings = {
+  window.AeroWidgetsSettings = {
     render: function (root, opts) {
       opts = opts || {};
       var refresh = opts.refresh || function () {};
@@ -565,7 +565,7 @@
       cb.appendChild(cp);
       cb.appendChild(el('span', 'wp-name', 'Своя'));
       cb.addEventListener('click', function () {
-        window.AeraModal.open('Свой фон', function (body, close) {
+        window.AeroModal.open('Свой фон', function (body, close) {
           var row = el('div', 'field-row');
           row.style.display = 'block';
           row.appendChild(Object.assign(el('div'), { innerHTML: '<div class="field-label">URL изображения</div><div class="field-sub">Прямая ссылка на картинку (jpg, png, webp)</div>' }));
@@ -581,7 +581,7 @@
             Store.update({ wallpaper: 'aurora', wallpaperUrl: '' });
             close();
             refresh();
-            window.AeraWidgetsSettings.render(root.parentNode, opts);
+            window.AeroWidgetsSettings.render(root.parentNode, opts);
           });
           var bOk = el('button', 'nt-btn primary', 'Применить');
           bOk.addEventListener('click', function () {
@@ -589,7 +589,7 @@
             Store.update({ wallpaper: 'custom', wallpaperUrl: url });
             close();
             refresh();
-            window.AeraWidgetsSettings.render(root.parentNode, opts);
+            window.AeroWidgetsSettings.render(root.parentNode, opts);
           });
           actions.appendChild(bClear);
           actions.appendChild(bOk);
@@ -784,7 +784,7 @@
         var parent = root.parentNode;
         if (!parent) return;
         parent.innerHTML = '';
-        window.AeraWidgetsSettings.render(parent, opts);
+        window.AeroWidgetsSettings.render(parent, opts);
         refresh();
       }
     }
@@ -794,7 +794,7 @@
   function openWidgetOptions(key, onChange) {
     var c = Store.get();
     var title = (WIDGET_META[key] || {}).name || 'Виджет';
-    window.AeraModal.open(title, function (body, close) {
+    window.AeroModal.open(title, function (body, close) {
       function rerender() { Store.save(); onChange(); }
       if (key === 'clock') {
         var s = c.widgets.clock;

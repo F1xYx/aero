@@ -74,20 +74,9 @@
   /* ============================ шторки ============================ */
   let openDrawerName = null;
 
-  /** Шторки/оверлеи не должны пропадать в полноэкранном режиме: сначала
-      выходим из HTML-fullscreen, затем открываем панель. */
-  function exitFullscreenIfAny() {
-    try {
-      if (document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen().catch(() => { /* noop */ });
-      }
-    } catch (e) { /* noop */ }
-  }
-
   A.openDrawer = function (which) {
-    if (A.WEB) exitFullscreenIfAny();
     openDrawerName = which;
-    if (el.settingsDrawer) el.settingsDrawer.classList.toggle('open', which === 'settings');
+    el.settingsDrawer.classList.toggle('open', which === 'settings');
     el.historyDrawer.classList.toggle('open', which === 'history');
     if (el.downloadsDrawer) el.downloadsDrawer.classList.toggle('open', which === 'downloads');
     el.overlay.classList.add('visible');
@@ -97,7 +86,7 @@
   A.closeDrawers = function () {
     if (!openDrawerName) return;
     openDrawerName = null;
-    if (el.settingsDrawer) el.settingsDrawer.classList.remove('open');
+    el.settingsDrawer.classList.remove('open');
     el.historyDrawer.classList.remove('open');
     if (el.downloadsDrawer) el.downloadsDrawer.classList.remove('open');
     el.overlay.classList.remove('visible');
@@ -105,26 +94,15 @@
 
   A.currentDrawer = () => openDrawerName;
 
-  /* Настройки: на десктопе — ОТДЕЛЬНОЕ окно (доступно и в fullscreen),
-     в вебе — шторка с выходом из полноэкранного режима. */
   A.openSettings = function () {
-    if (A.DESKTOP && window.zdesktop && window.zdesktop.openSettingsWindow) {
-      window.zdesktop.openSettingsWindow();
-      return;
-    }
-    exitFullscreenIfAny();
     A.importNewtabSettings();
     if (A.settingsUI) A.settingsUI.fill();
     A.openDrawer('settings');
   };
 
-  /** Открыть настройки сразу на нужном разделе (кнопка «Пароли» в тулбаре,
-      Ctrl+Shift+P, магазин расширений и т.д.). */
+  /** Открыть настройки и подсветить нужный раздел (навигация по чипам,
+      кнопке «Пароли» в тулбаре, Ctrl+Shift+P и т.д.). */
   A.openSettingsSection = function (secId) {
-    if (A.DESKTOP && window.zdesktop && window.zdesktop.openSettingsWindow) {
-      window.zdesktop.openSettingsWindow(secId);
-      return;
-    }
     A.openSettings();
     setTimeout(() => {
       try {
@@ -149,7 +127,7 @@
   };
 
   /** Настройки, изменённые в «Кастомизации» новой вкладки (localStorage),
-      подхватываются хостом при открытии настроек. */
+      подхватываются хостом при открытии шторки настроек. */
   A.importNewtabSettings = function () {
     try {
       const fromNewtab = A.LS.get('zsettings', {}) || {};
@@ -237,7 +215,7 @@
       body.type = 'button';
       body.className = 'ov-body';
       body.title = tab.title || '';
-      body.appendChild(A.faviconEl(tab.favicon, tab.url || '', 14));
+      body.appendChild(A.letterTile(tab.url || '', 'lt'));
       const host = document.createElement('span');
       host.className = 'ov-host';
       host.textContent = tab.newtab || !tab.url ? 'Начальная страница' : A.hostOf(tab.url);

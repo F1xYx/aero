@@ -7,7 +7,7 @@
 (function () {
   const A = window.Aera;
   const el = A.el;
-  const drawer = el.settingsDrawer || document;
+  const drawer = el.settingsDrawer;
 
   /** Закрашивает пройденную часть слайдера через CSS-переменную --fill. */
   function paintRangeFill(input) {
@@ -35,15 +35,6 @@
       });
       const glass = document.getElementById('setGlass');
       if (glass) glass.checked = A.settings.glass !== false;
-      const glassLevel = document.getElementById('setGlassLevel');
-      if (glassLevel) {
-        glassLevel.value = String(A.clamp(Number.isNaN(Number(A.settings.glassLevel)) ? 50 : Number(A.settings.glassLevel), 0, 100));
-        const glVal = document.getElementById('glassLevelVal');
-        if (glVal) glVal.textContent = glassLevel.value + '%';
-        paintRangeFill(glassLevel);
-      }
-      const tint = document.getElementById('setPageTint');
-      if (tint) tint.checked = A.settings.pageTint !== false;
       const anim = document.getElementById('setAnimations');
       if (anim) anim.checked = !!A.settings.animations;
       const scaleInput = document.getElementById('setUiScale');
@@ -139,35 +130,6 @@
       A.saveSettings();
       A.applyGlass();
       A.toast(e.target.checked ? 'Стекло включено' : 'Стекло выключено');
-    });
-  }
-
-  /* Плотность Liquid Glass (слайдер macOS 27 Golden Gate).
-     Применяется живо, без перезагрузки интерфейса. */
-  const glassLevelInput = document.getElementById('setGlassLevel');
-  if (glassLevelInput) {
-    glassLevelInput.addEventListener('input', (e) => {
-      A.settings.glassLevel = A.clamp(Number(e.target.value) || 0, 0, 100);
-      const glVal = document.getElementById('glassLevelVal');
-      if (glVal) glVal.textContent = e.target.value + '%';
-      paintRangeFill(e.target);
-      A.saveSettings();
-      A.applyGlass();
-    });
-  }
-
-  const tintInput = document.getElementById('setPageTint');
-  if (tintInput) {
-    tintInput.addEventListener('change', (e) => {
-      A.settings.pageTint = e.target.checked;
-      A.saveSettings();
-      if (!e.target.checked) document.body.classList.add('no-tint');
-      else {
-        document.body.classList.remove('no-tint');
-        const t = A.tabs.active();
-        if (t && A.safariRefreshTint) A.safariRefreshTint();
-      }
-      A.toast(e.target.checked ? 'Окраска панели включена' : 'Окраска панели выключена');
     });
   }
 
@@ -422,7 +384,7 @@
     if (A.WEB) {
       try { await fetch('/api/history', { method: 'DELETE' }); } catch (e) { /* noop */ }
     }
-    if (A.history && el.histSearch) A.history.render(el.histSearch.value);
+    A.history.render(el.histSearch.value);
     A.toast(ok ? 'Данные браузера очищены' : 'Не удалось очистить часть данных', ok ? 'ok' : 'warn');
   }
 

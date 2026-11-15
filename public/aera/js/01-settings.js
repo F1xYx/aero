@@ -42,19 +42,6 @@
   if (['newtab', 'restore'].indexOf(s.startup) < 0) s.startup = 'restore';
   s.uiScale = A.clamp(Number(s.uiScale) || 1, 0.8, 1.3);
   s.pageZoom = A.clamp(Number(s.pageZoom) || 1, 0.5, 2);
-  s.glassLevel = A.clamp(Number.isNaN(Number(s.glassLevel)) ? 50 : Number(s.glassLevel), 0, 100);
-
-  /* 2.3.6: дефолт темы интерфейса — «Системная» (как в Safari, следует за ОС).
-     'light' в сохранённых настройках мог быть просто старым дефолтом, а не
-     осознанным выбором — мигрируем в 'system' ОДИН раз, флагом. */
-  let migratedTheme = false;
-  if (!A.LS.get('zmig236theme', false)) {
-    if (stored.theme === undefined || stored.theme === 'light') {
-      s.theme = 'system';
-      migratedTheme = true;
-    }
-    A.LS.set('zmig236theme', true);
-  }
 
   A.settings = s;
 
@@ -80,10 +67,6 @@
       } catch (e) { /* noop */ }
     }
   };
-
-  /* Миграция темы: сразу пишем 'system' и в settings.json, чтобы
-     syncRemoteSettings не вернул старый дефолт 'light'. */
-  if (migratedTheme) A.saveSettings();
 
   A.engine = function () { return A.ENGINES[A.settings.engine] || A.ENGINES.google; };
   A.searchUrl = function (q) { return A.engine().url.replace('%s', encodeURIComponent(q)); };
@@ -111,13 +94,8 @@
       window.zdesktop.settingsGet().then((remote) => {
         if (!remote || typeof remote !== 'object') return;
         const before = JSON.stringify(A.settings);
-        /* 'light' в settings.json после миграции 2.3.6 — это старый дефолт,
-           а не выбор пользователя: не даём ему перебить 'system'. */
-        const themeMigrated = A.LS.get('zmig236theme', false) === true;
         ['siteTheme', 'hwAccel', 'adBlock', 'downloadsAsk', 'hibernate', 'pageZoom', 'theme', 'engine', 'startup', 'home'].forEach((k) => {
-          if (remote[k] === undefined) return;
-          if (k === 'theme' && themeMigrated && remote[k] === 'light') return;
-          A.settings[k] = remote[k];
+          if (remote[k] !== undefined) A.settings[k] = remote[k];
         });
         if (JSON.stringify(A.settings) !== before) {
           A.LS.set('zsettings', A.settings);

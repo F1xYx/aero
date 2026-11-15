@@ -36,17 +36,9 @@
   };
 
   /* «Стекло»: быстрая полупрозрачность панелей (rgba + 1px рамки),
-     без backdrop-filter — так держатся стабильные 60–144 FPS.
-     Плотность — слайдер Liquid Glass из macOS 27 Golden Gate:
-     0 = ультра-прозрачное, 100 = полностью тонированное (дефолт 50). */
+     без backdrop-filter — так держатся стабильные 60–144 FPS. */
   A.applyGlass = function () {
-    const on = A.settings.glass !== false;
-    document.body.classList.toggle('glass', on);
-    const lv = A.clamp(Number.isNaN(Number(A.settings.glassLevel)) ? 50 : Number(A.settings.glassLevel), 0, 100);
-    const k = lv / 100;
-    const st = document.documentElement.style;
-    st.setProperty('--glass-fill-light', 'rgba(255,255,255,' + (0.30 + 0.42 * k).toFixed(3) + ')');
-    st.setProperty('--glass-fill-dark', 'rgba(24,24,28,' + (0.38 + 0.44 * k).toFixed(3) + ')');
+    document.body.classList.toggle('glass', A.settings.glass !== false);
   };
 
   /** Тема САЙТОВ: system | force-dark | light. */

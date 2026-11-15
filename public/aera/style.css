@@ -14,7 +14,7 @@
   --radius-panel: 14px;
   --radius-pill: 999px;
   --strip-h: 36px;
-  --toolbar-h: 48px;
+  --toolbar-h: 44px;
   --bmbar-h: 32px;
   --accent: #007aff;
   --accent-soft: rgba(0, 122, 255, 0.14);
@@ -27,12 +27,10 @@
 html[data-theme="light"],
 html[data-theme="system"] {
   color-scheme: light;
-  /* Хром Safari (сэмпл с реальных скриншотов macOS): тулбар #f8f8f8,
-     активная вкладка и капсула — белые, поле НАД тулбаром светлее фона */
-  --bg: #efeff0;
+  --bg: #f4f3f7;
   --bg-deep: #ffffff;
-  --chrome: rgba(248, 248, 250, 0.92);
-  --chrome-strong: rgba(252, 252, 254, 0.97);
+  --chrome: rgba(253, 253, 255, 0.8);
+  --chrome-strong: rgba(253, 253, 255, 0.94);
   --glass-soft: rgba(120, 120, 128, 0.14);
   --glass-bright: rgba(120, 120, 128, 0.22);
   --glass-strong: rgba(252, 252, 254, 0.97);
@@ -41,9 +39,8 @@ html[data-theme="system"] {
   --text: #1d1d1f;
   --text-2: rgba(29, 29, 31, 0.6);
   --text-3: rgba(29, 29, 31, 0.38);
-  --input-bg: #ffffff;
-  --input-ring: rgba(0, 0, 0, 0.06);
-  --tab-active-bg: #ffffff;
+  --input-bg: rgba(120, 120, 128, 0.14);
+  --tab-active-bg: rgba(255, 255, 255, 0.9);
   --shadow-1: 0 6px 18px rgba(30, 30, 40, 0.14);
   --shadow-2: 0 10px 28px rgba(30, 30, 40, 0.18);
   --window-ring: rgba(0, 0, 0, 0.25);
@@ -61,23 +58,20 @@ html[data-theme="system"] {
 /* ---------- тёмная тема ---------- */
 html[data-theme="dark"] {
   color-scheme: dark;
-  /* Тёмный Safari (сэмпл dk5): тулбар #32343b, активная вкладка светлее,
-     капсула адреса ТЕМНЕЕ тулбара — как в настоящем Safari */
   --bg: #17171a;
   --bg-deep: #1e1e20;
-  --chrome: rgba(50, 52, 59, 0.92);
-  --chrome-strong: rgba(62, 64, 71, 0.97);
+  --chrome: rgba(34, 34, 37, 0.88);
+  --chrome-strong: rgba(48, 48, 52, 0.95);
   --glass-soft: rgba(255, 255, 255, 0.09);
   --glass-bright: rgba(255, 255, 255, 0.15);
-  --glass-strong: rgba(40, 42, 48, 0.97);
+  --glass-strong: rgba(36, 36, 40, 0.97);
   --hairline: rgba(255, 255, 255, 0.09);
   --hairline-strong: rgba(255, 255, 255, 0.18);
   --text: #f2f2f7;
   --text-2: rgba(242, 242, 247, 0.6);
   --text-3: rgba(242, 242, 247, 0.38);
-  --input-bg: #26272d;
-  --input-ring: rgba(255, 255, 255, 0.07);
-  --tab-active-bg: #484a53;
+  --input-bg: rgba(120, 120, 128, 0.26);
+  --tab-active-bg: rgba(255, 255, 255, 0.16);
   --shadow-1: 0 6px 18px rgba(0, 0, 0, 0.4);
   --shadow-2: 0 10px 28px rgba(0, 0, 0, 0.5);
   --window-ring: rgba(255, 255, 255, 0.15);
@@ -98,19 +92,18 @@ html[data-theme="dark"] {
     color-scheme: dark;
     --bg: #17171a;
     --bg-deep: #1e1e20;
-    --chrome: rgba(50, 52, 59, 0.92);
-    --chrome-strong: rgba(62, 64, 71, 0.97);
+    --chrome: rgba(34, 34, 37, 0.88);
+    --chrome-strong: rgba(48, 48, 52, 0.95);
     --glass-soft: rgba(255, 255, 255, 0.09);
     --glass-bright: rgba(255, 255, 255, 0.15);
-    --glass-strong: rgba(40, 42, 48, 0.97);
+    --glass-strong: rgba(36, 36, 40, 0.97);
     --hairline: rgba(255, 255, 255, 0.09);
     --hairline-strong: rgba(255, 255, 255, 0.18);
     --text: #f2f2f7;
     --text-2: rgba(242, 242, 247, 0.6);
     --text-3: rgba(242, 242, 247, 0.38);
-    --input-bg: #26272d;
-    --input-ring: rgba(255, 255, 255, 0.07);
-    --tab-active-bg: #484a53;
+    --input-bg: rgba(120, 120, 128, 0.26);
+    --tab-active-bg: rgba(255, 255, 255, 0.16);
     --shadow-1: 0 6px 18px rgba(0, 0, 0, 0.4);
     --shadow-2: 0 10px 28px rgba(0, 0, 0, 0.5);
     --window-ring: rgba(255, 255, 255, 0.15);
@@ -492,26 +485,24 @@ body.web-mode #windowCard.minimized {
   pointer-events: none;
 }
 
-/* ---------- режим «стекло»: полупрозрачность без размытий ----------
-   Плотность заливки задаёт --glass-fill-* (слайдер Liquid Glass из macOS 27:
-   от ультра-прозрачного к полностью тонированному). Дефолт = 50%. */
+/* ---------- режим «стекло»: полупрозрачность без размытий ---------- */
 body.glass #titlebar,
 body.glass #toolbar {
-  background: var(--glass-fill-light, rgba(255, 255, 255, 0.52));
+  background: rgba(255, 255, 255, 0.52);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
-body.glass #bmbar { background: var(--glass-fill-light, rgba(255, 255, 255, 0.52)); }
+body.glass #bmbar { background: rgba(255, 255, 255, 0.52); }
 html[data-theme="dark"] body.glass #titlebar,
 html[data-theme="dark"] body.glass #toolbar,
 html[data-theme="dark"] body.glass #bmbar {
-  background: var(--glass-fill-dark, rgba(24, 24, 28, 0.62));
+  background: rgba(24, 24, 28, 0.62);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 @media (prefers-color-scheme: dark) {
   html[data-theme="system"] body.glass #titlebar,
   html[data-theme="system"] body.glass #toolbar,
   html[data-theme="system"] body.glass #bmbar {
-    background: var(--glass-fill-dark, rgba(24, 24, 28, 0.62));
+    background: rgba(24, 24, 28, 0.62);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
 }
@@ -521,17 +512,13 @@ html[data-theme="dark"] body.web-mode.glass #windowCard { background: rgba(18, 1
   html[data-theme="system"] body.web-mode.glass #windowCard { background: rgba(18, 18, 22, 0.32); }
 }
 
-/* ============================ индикатор загрузки ============================
-   Как в Safari: тонкая линия прогресса ВНУТРИ адресной капсулы (снизу). */
+/* ============================ индикатор загрузки ============================ */
 #progress {
   position: absolute;
-  left: 7px;
-  right: 7px;
-  bottom: 0;
+  top: 0; left: 0; right: 0;
   height: 2px;
-  z-index: 5;
+  z-index: 300;
   overflow: hidden;
-  border-radius: 0 0 8px 8px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.35s ease 0.15s;
@@ -583,10 +570,9 @@ html[data-theme="dark"] body.web-mode.glass #windowCard { background: rgba(18, 1
   height: var(--strip-h);
   flex: 0 0 auto;
   padding: 0 6px;
-  background: var(--chrome-tint, var(--chrome));
+  background: var(--chrome);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
   border-bottom: 1px solid var(--hairline);
-  transition: background 0.4s ease, transform 0.34s var(--zb-smooth);
 }
 html[data-theme="dark"] #titlebar,
 html[data-theme="dark"] #toolbar,
@@ -601,15 +587,12 @@ html[data-theme="dark"] #bmbar { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 100%;
-  padding: 0 10px 0 2px;
-  margin-right: 4px;
+  padding: 0 8px 0 2px;
   font-weight: 600;
   font-size: 11.5px;
   letter-spacing: 0.02em;
   color: var(--text-2);
   white-space: nowrap;
-  border-right: 1px solid var(--hairline);
 }
 #brand img {
   width: 16px;
@@ -622,7 +605,6 @@ html[data-theme="dark"] #bmbar { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;   /* группа вкладок по центру полосы, как в Safari */
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
@@ -643,26 +625,22 @@ html[data-theme="dark"] #bmbar { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0
 .strip-btn:hover { background: var(--hover-fill); color: var(--text); }
 .strip-btn:active { transform: scale(0.9); }
 
-/* ---------- вкладка: Safari-геометрия ----------
-   Сетка 24px+1fr: фавикон и крестик живут в ОДНОЙ ячейке (крестик
-   появляется СЛЕВА поверх фавикона при наведении — как в Safari),
-   заголовок — во второй колонке и не смещается при подмене. */
+/* ---------- вкладка ---------- */
 .tab {
   position: relative;
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
+  display: flex;
   align-items: center;
+  gap: 7px;
   width: var(--tab-w, 200px);
   min-width: 0;
   height: 28px;
   margin: 0 2px;
-  padding-right: 8px;
-  border-radius: 7px;
+  padding: 0 6px 0 9px;
+  border-radius: var(--radius-tab);
   color: var(--text-2);
   cursor: default;
   flex: 0 0 auto;
   transition:
-    width 0.26s var(--zb-smooth),
     background 0.18s ease,
     color 0.18s ease,
     opacity 0.18s ease,
@@ -672,21 +650,17 @@ html[data-theme="dark"] #bmbar { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0
 .tab.active {
   background: var(--tab-active-bg);
   color: var(--text);
-  box-shadow: 0 1px 2.5px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.045);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 html[data-theme="dark"] .tab.active {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 @media (prefers-color-scheme: dark) {
   html[data-theme="system"] .tab.active {
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
   }
 }
-.tab.tab-enter { animation: zb-tab-in 0.32s var(--zb-spring) both; }
-
-/* перегрузка вкладок: остаётся только фавикон (как в Safari) */
-#titlebar.crowded .tab { grid-template-columns: 24px; padding-right: 0; }
-#titlebar.crowded .tab-title { display: none; }
+.tab.tab-enter { animation: zb-tab-in 0.28s var(--zb-spring) both; }
 
 /* инкогнито: лиловый оттенок иконки */
 .tab.incognito .fav { color: #a985ff; }
@@ -699,7 +673,7 @@ html[data-theme="dark"] .tab.active {
 .tab.hibernated.active { opacity: 1; }
 
 .tab-title {
-  grid-column: 2;
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -708,28 +682,20 @@ html[data-theme="dark"] .tab.active {
   line-height: 1;
 }
 
-/* фавикон и крестик — в одной ячейке (колонка 1), кроссфейд как в Safari */
-.tab .fav,
-.tab .tab-close {
-  grid-area: 1 / 1;
-  justify-self: center;
-  align-self: center;
-}
-.tab .fav { transition: opacity 0.15s ease; }
-.tab:hover .fav { opacity: 0; }
-
 .tab-close {
-  width: 18px;
-  height: 18px;
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
   display: grid;
   place-items: center;
   border-radius: 50%;
   color: var(--text-3);
   opacity: 0;
-  transition: opacity 0.15s ease, background 0.14s ease, color 0.14s ease, transform 0.14s ease;
+  transition: opacity 0.14s ease, background 0.14s ease, color 0.14s ease, transform 0.14s ease;
 }
-.tab:hover .tab-close { opacity: 1; }
-.tab-close:hover { background: var(--glass-bright); color: var(--text); transform: scale(1.08); }
+.tab:hover .tab-close,
+.tab.active .tab-close { opacity: 1; }
+.tab-close:hover { background: var(--glass-bright); color: var(--text); transform: scale(1.1); }
 .tab-close:active { transform: scale(0.86); }
 
 .tab.tab-closing {
@@ -739,15 +705,9 @@ html[data-theme="dark"] .tab.active {
   margin-right: 0;
   padding-left: 0;
   padding-right: 0;
-  gap: 0;
   opacity: 0;
   overflow: hidden;
   pointer-events: none;
-  transition:
-    width 0.18s var(--zb-smooth),
-    margin 0.18s var(--zb-smooth),
-    padding 0.18s var(--zb-smooth),
-    opacity 0.16s ease;
 }
 
 .tab.drag-ghost {
@@ -821,9 +781,9 @@ html[data-theme="dark"] .tab.active {
   height: var(--toolbar-h);
   flex: 0 0 auto;
   padding: 0 8px;
-  background: var(--chrome-tint, var(--chrome));
+  background: var(--chrome);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
   border-bottom: none;
-  transition: background 0.4s ease, transform 0.34s var(--zb-smooth);
 }
 
 .tb-group {
@@ -897,7 +857,7 @@ html[data-theme="dark"] .incog-badge { color: #bfa1ff; }
   html[data-theme="system"] .incog-badge { color: #bfa1ff; }
 }
 
-/* ---------- адресная строка: капсула Safari ---------- */
+/* ---------- адресная строка ---------- */
 #addrwrap {
   position: relative;
   flex: 1 1 auto;
@@ -907,45 +867,25 @@ html[data-theme="dark"] .incog-badge { color: #bfa1ff; }
 }
 
 .addr-pill {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   width: min(620px, 100%);
-  height: 28px;
-  padding: 0 8px 0 12px;
-  border-radius: 999px;
+  height: 30px;
+  padding: 0 8px 0 11px;
+  border-radius: 10px;
   background: var(--input-bg);
-  box-shadow: inset 0 0 0 1px var(--input-ring);
   transition:
-    box-shadow 0.24s ease,
+    box-shadow 0.22s ease,
     background 0.22s ease,
-    width 0.28s var(--zb-smooth),
-    max-width 0.28s var(--zb-smooth);
+    transform 0.22s var(--zb-spring);
 }
-.addr-pill:hover { box-shadow: inset 0 0 0 1px var(--hairline); }
+.addr-pill:hover { background: var(--glass-bright); }
 .addr-pill:focus-within {
   background: var(--chrome-strong);
-  box-shadow: 0 0 0 3.5px var(--accent-soft), inset 0 0 0 1px var(--hairline);
-  width: min(700px, 100%);
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3.5px var(--accent-soft);
 }
-
-/* перезагрузка — внутри капсулы справа (как в Safari) */
-.addr-reload {
-  flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
-  margin-right: 1px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--text-3);
-  transition: background 0.15s ease, color 0.15s ease, transform 0.18s var(--zb-spring);
-}
-.addr-reload:hover { background: var(--hover-fill); color: var(--text); }
-.addr-reload:active { transform: scale(0.88); }
-.addr-reload svg { display: block; }
-.addr-reload.spinning svg { animation: spin 0.9s linear infinite; }
 
 #siteIcon {
   display: grid;
@@ -964,11 +904,11 @@ html[data-theme="dark"] .incog-badge { color: #bfa1ff; }
   outline: none;
   background: transparent;
   color: var(--text);
-  font-size: 12.5px;
+  font-size: 13px;
   user-select: text;
-  /* Safari: URL всегда по центру капсулы */
   text-align: center;
 }
+.addr-pill:focus-within #address { text-align: left; }
 #address::placeholder { color: var(--text-3); }
 
 /* звезда-закладка */
@@ -2158,24 +2098,6 @@ input[type="range"]::-moz-range-thumb {
   white-space: nowrap;
 }
 .store-install { flex: 0 0 auto; height: 28px; padding: 0 12px; font-size: 11.5px; }
-.store-actions {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-}
-.store-link {
-  flex: 0 0 auto;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-3);
-  text-decoration: none;
-  padding: 5px 7px;
-  border-radius: 8px;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-.store-link:hover { background: var(--hover-fill); color: var(--accent); }
 .store-byid {
   display: flex;
   align-items: center;
@@ -2253,93 +2175,3 @@ body.no-anim *::after,
     transition-duration: 0.01ms !important;
   }
 }
-
-/* ============================ Safari: меню ⋯ (переполнение тулбара) ======== */
-#btnOverflow { position: relative; }
-#btnOverflow.open { background: var(--hover-fill); color: var(--text); }
-
-#overflowMenu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 8px;
-  min-width: 240px;
-  padding: 5px;
-  border-radius: 12px;
-  background: var(--glass-strong);
-  border: 1px solid var(--hairline);
-  box-shadow: var(--shadow-2);
-  z-index: 320;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: scale(0.96) translateY(-6px);
-  transform-origin: top right;
-  transition: opacity 0.18s ease, transform 0.2s var(--zb-smooth), visibility 0s linear 0.18s;
-}
-#overflowMenu.open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transform: scale(1) translateY(0);
-  transition: opacity 0.16s ease, transform 0.2s var(--zb-smooth);
-}
-
-.ov-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 7px 10px;
-  border-radius: 8px;
-  color: var(--text);
-  font-size: 13px;
-  text-align: left;
-  transition: background 0.12s ease;
-}
-.ov-item:hover { background: var(--hover-fill); }
-.ov-item:active { background: var(--press-fill); }
-.ov-item svg { color: var(--text-2); flex: 0 0 auto; }
-.ov-sep { height: 1px; margin: 5px 10px; background: var(--hairline); }
-.ov-hint {
-  padding: 6px 10px 4px;
-  font-size: 11px;
-  color: var(--text-3);
-  letter-spacing: 0.02em;
-}
-
-/* ============================ Safari: авто-скрытие хрома в fullscreen ===== */
-/* В полноэкранном режиме панель уезжает вверх при прокрутке вниз и
-   возвращается при прокрутке вверх / мыши у верхней кромки (как Safari). */
-body.fs-hide #toolbar { transform: translateY(-100%); }
-body.fs-hide #titlebar { transform: translateY(-100%); }
-body.fs-hide #bmbar { transform: translateY(-100%); }
-body.fs-hide #windowCard { border-radius: 0; }
-
-/* ============================ Safari: окраска панели цветом сайта ========= */
-/* «Show Color in Tab Bar»: тулбар/вкладки подкрашиваются цветом страницы.
-   Цвет считает JS (смешение с базовым хромом) и кладёт в --chrome-tint. */
-#bmbar { background: var(--chrome-tint, var(--chrome)); transition: background 0.4s ease, transform 0.34s var(--zb-smooth); }
-body.no-tint #toolbar,
-body.no-tint #titlebar,
-body.no-tint #bmbar { --chrome-tint: var(--chrome); }
-
-/* Бейдж активных загрузок в меню ⋯ (перенос с тулбара) */
-.ov-item.has-badge { position: relative; }
-.ov-item.has-badge::after {
-  content: attr(data-badge);
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 10px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 18px;
-  text-align: center;
-}
-.ov-item:disabled { opacity: 0.4; pointer-events: none; }

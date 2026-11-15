@@ -62,3 +62,8 @@ download/*.exe
 download/archive/
 upload/
 backups-VERSIONS.md
+
+# Code signing secrets (never commit)
+zbrowser-desktop/build/codesign/*.pfx
+zbrowser-desktop/build/codesign/pass.txt
+zbrowser-desktop/build/signing/*.key.*

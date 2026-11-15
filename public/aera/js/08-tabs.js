@@ -299,138 +299,13 @@
 
   /* ==================================================================
      ОТРИСОВКА ВКЛАДОК
-     Инкрементальная: элементы вкладок переиспользуются, DOM не
-     пересобирается целиком (источник мерцания и «кривых» вкладок).
-     Обновляются только изменившиеся части: классы, заголовок, иконка.
      ================================================================== */
   function updateTabWidths() {
     const count = tabs.length;
     if (!count) return;
-    const avail = Math.max(300, el.strip.clientWidth);
-    /* Safari Separate: вкладки делят полосу поровну, широкие при малом числе
-       (мягкий потолок 520px), узкие — до одних фавиконов. */
-    const w = A.clamp(Math.floor((avail - count * 4) / count), 64, 520);
+    const avail = Math.max(300, el.strip.clientWidth - 10);
+    const w = A.clamp(Math.floor((avail - count * 4 - 4) / count), 64, 240);
     el.strip.style.setProperty('--tab-w', w + 'px');
-    /* Перегрузка: при узких вкладках остаются только фавиконы (как в Safari). */
-    el.titlebar.classList.toggle('crowded', w < 84);
-  }
-
-  const tabEls = new Map(); // id -> { root, fav, title, close, favKey, titleText, cls }
-
-  function buildTabEl(tab) {
-    const tabEl = document.createElement('div');
-    tabEl.className = 'tab';
-    tabEl.dataset.id = tab.id;
-    tabEl.setAttribute('role', 'tab');
-    tabEl.setAttribute('aria-selected', 'false');
-    tabEl.tabIndex = -1;
-
-    const fav = document.createElement('span');
-    fav.className = 'fav';
-    const title = document.createElement('span');
-    title.className = 'tab-title';
-    const close = document.createElement('button');
-    close.className = 'tab-close';
-    close.type = 'button';
-    close.title = 'Закрыть вкладку';
-    close.setAttribute('aria-label', 'Закрыть вкладку ' + (tab.title || ''));
-    close.innerHTML = A.SVG.x;
-    close.addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeTab(tab.id);
-    });
-    tabEl.appendChild(fav);
-    tabEl.appendChild(title);
-    tabEl.appendChild(close);
-
-    tabEl.addEventListener('auxclick', (e) => {
-      if (e.button === 1) closeTab(tab.id);
-    });
-
-    return { root: tabEl, fav, title, close, favKey: null, titleText: null, cls: '' };
-  }
-
-  function favKeyOf(tab) {
-    if (tab.loading) return '\u0001loading';
-    if (tab.unloaded) return '\u0002unloaded';
-    return tab.favicon || '';
-  }
-
-  function paintFav(tab, refs) {
-    const key = favKeyOf(tab);
-    if (key === refs.favKey) return;
-    refs.favKey = key;
-    refs.fav.textContent = '';
-    refs.fav.className = 'fav';
-    if (tab.loading) {
-      refs.fav.classList.add('spinner');
-    } else if (tab.unloaded) {
-      refs.fav.innerHTML = A.SVG.moon;
-      refs.fav.classList.add('unloaded');
-    } else if (tab.favicon) {
-      const img = document.createElement('img');
-      img.src = tab.favicon;
-      img.width = 16;
-      img.height = 16;
-      img.alt = '';
-      img.referrerPolicy = 'no-referrer';
-      img.onerror = () => {
-        img.remove();
-        refs.fav.textContent = '';
-        refs.fav.appendChild(A.letterTile(tab.url || ''));
-      };
-      refs.fav.appendChild(img);
-    } else {
-      /* Нет события от страницы: начальная страница — логотип Aera,
-         остальные домены — иконка из сервиса Google, при ошибке — плитка. */
-      let guessed = '';
-      if (A.isNewtabUrl(tab.url || '')) {
-        guessed = 'assets/logo-256.png';
-      } else {
-        guessed = A.domainFaviconUrl(tab.url || '');
-      }
-      if (guessed) {
-        const img = document.createElement('img');
-        img.src = guessed;
-        img.width = 16;
-        img.height = 16;
-        img.alt = '';
-        img.referrerPolicy = 'no-referrer';
-        img.onerror = () => {
-          img.remove();
-          refs.fav.textContent = '';
-          refs.fav.appendChild(A.letterTile(tab.url || ''));
-        };
-        refs.fav.appendChild(img);
-      } else {
-        refs.fav.appendChild(A.letterTile(tab.url || ''));
-      }
-    }
-  }
-
-  function paintTab(tab, refs) {
-    let cls = 'tab' + (tab.id === activeId ? ' active' : '');
-    if (tab.incognito) cls += ' incognito';
-    if (tab.frozen || tab.unloaded) cls += ' hibernated';
-    if (enterAnimIds.has(tab.id)) {
-      cls += ' tab-enter';
-      enterAnimIds.delete(tab.id);
-    }
-    if (cls !== refs.cls) {
-      refs.cls = cls;
-      refs.root.className = cls;
-      refs.root.setAttribute('aria-selected', tab.id === activeId ? 'true' : 'false');
-    }
-    const titleText = (tab.unloaded ? tab.unloaded.title : tab.title) || 'Без названия';
-    if (titleText !== refs.titleText) {
-      refs.titleText = titleText;
-      refs.title.textContent = titleText;
-      refs.root.title = tab.unloaded
-        ? titleText + ' — выгружена из памяти, откроется при клике'
-        : titleText;
-      if (tab.id === activeId) document.title = tab.newtab ? 'Aera' : (titleText === 'Без названия' ? 'Aera' : titleText + ' — Aera');
-    }
-    paintFav(tab, refs);
   }
 
   function renderTabs() {
@@ -440,32 +315,58 @@
       return;
     }
     updateTabWidths();
-
-    /* Удаляем элементы закрытых вкладок. */
-    for (const [id, refs] of tabEls) {
-      if (!tabs.some((t) => t.id === id)) {
-        refs.root.remove();
-        tabEls.delete(id);
-      }
-    }
-
-    /* Вставляем/переставляем и обновляем только изменённое. */
-    let cursor = el.strip.firstChild;
-    tabs.forEach((tab) => {
-      let refs = tabEls.get(tab.id);
-      if (!refs) {
-        refs = buildTabEl(tab);
-        tabEls.set(tab.id, refs);
-      }
-      /* Позиция: элемент должен стоять на своем месте в порядке tabs. */
-      if (refs.root !== cursor) {
-        el.strip.insertBefore(refs.root, cursor);
-      }
-      cursor = refs.root.nextSibling;
-      paintTab(tab, refs);
-    });
-    /* dropLine всегда последним. */
+    el.strip.textContent = '';
     el.strip.appendChild(el.dropLine);
+    tabs.forEach((tab) => {
+      let cls = 'tab' + (tab.id === activeId ? ' active' : '');
+      if (tab.incognito) cls += ' incognito';
+      if (tab.frozen || tab.unloaded) cls += ' hibernated';
+      if (enterAnimIds.has(tab.id)) {
+        cls += ' tab-enter';
+        enterAnimIds.delete(tab.id);
+      }
+      const tabEl = document.createElement('div');
+      tabEl.className = cls;
+      tabEl.dataset.id = tab.id;
+      tabEl.setAttribute('role', 'tab');
+      tabEl.title = tab.unloaded
+        ? (tab.unloaded.title || '') + ' — выгружена из памяти, откроется при клике'
+        : (tab.title || '');
+
+      let fav;
+      if (tab.loading) {
+        fav = document.createElement('span');
+        fav.className = 'fav spinner';
+      } else if (tab.unloaded) {
+        fav = document.createElement('span');
+        fav.className = 'fav unloaded';
+        fav.innerHTML = A.SVG.moon;
+      } else {
+        fav = A.faviconEl(tab.favicon, tab.url || '', 16);
+      }
+
+      const title = document.createElement('span');
+      title.className = 'tab-title';
+      title.textContent = (tab.unloaded ? tab.unloaded.title : tab.title) || 'Без названия';
+
+      const close = document.createElement('button');
+      close.className = 'tab-close';
+      close.title = 'Закрыть вкладку';
+      close.innerHTML = A.SVG.x;
+      close.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeTab(tab.id);
+      });
+
+      tabEl.appendChild(fav);
+      tabEl.appendChild(title);
+      tabEl.appendChild(close);
+
+      tabEl.addEventListener('auxclick', (e) => {
+        if (e.button === 1) closeTab(tab.id);
+      });
+      el.strip.appendChild(tabEl);
+    });
 
     if (drag && !drag.moved) {
       const tabEl = tabElById(drag.id);
@@ -553,15 +454,10 @@
       el.strip.appendChild(el.dropLine);
     }
 
-    /* Safari 27.2: вкладка «приземляется» плавно — масштаб и подъём
-       уходят той же пружиной, что и перемещение (ghost-класс снимаем
-       после анимации, чтобы scale не щёлкал мгновенно). */
-    tabEl.style.transition = 'transform 0.26s var(--zb-smooth), scale 0.26s var(--zb-smooth), box-shadow 0.26s var(--zb-smooth), background 0.26s var(--zb-smooth)';
+    tabEl.classList.remove('drag-ghost');
+    tabEl.style.transition = 'transform 0.24s var(--zb-smooth)';
     tabEl.style.transform = '';
-    setTimeout(() => {
-      tabEl.classList.remove('drag-ghost');
-      try { tabEl.style.transition = ''; } catch (err) { /* noop */ }
-    }, 280);
+    setTimeout(() => { try { tabEl.style.transition = ''; } catch (err) { /* noop */ } }, 260);
     scheduleSaveSession();
   }
 
@@ -654,7 +550,7 @@
     }
   });
 
-  if (el.brand) el.brand.addEventListener('dblclick', () => A.tabs.newTab());
+  el.brand.addEventListener('dblclick', () => A.tabs.newTab());
 
   /* ---------- контекстное меню вкладки ---------- */
   el.strip.addEventListener('contextmenu', (e) => {

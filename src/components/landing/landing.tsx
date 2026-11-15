@@ -37,7 +37,7 @@ import {
 import { DesktopDownloads } from "@/components/desktop-downloads";
 import { GlassWindow } from "@/components/landing/browser-mockups";
 
-const VERSION = "2.3.10";
+const VERSION = "2.3.11";
 
 const NAV_LINKS = [
   { href: "#features", label: "Возможности" },
@@ -652,7 +652,7 @@ function DownloadSection() {
 
 const CHANGELOG = [
   {
-    version: "2.3.10",
+    version: "2.3.11",
     current: true,
     text: "Настоящее жидкое стекло: хром окна парит над контентом, интенсивность blur — по настройке. Подпись сборок сертификатом.",
   },

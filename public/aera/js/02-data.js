@@ -235,7 +235,7 @@
         const row = document.createElement('div');
         row.className = 'hist-row';
 
-        row.appendChild(A.faviconEl(item.favicon, item.url || '', 14));
+        row.appendChild(A.letterTile(item.url || '', 'lt'));
 
         const main = document.createElement('div');
         main.className = 'hist-main';

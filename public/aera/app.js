@@ -1,11 +1,28 @@
-/* Aera — app core: tabs, toolbar, omnibox, overview, IPC */
+/* Aero — app core: tabs, toolbar, omnibox, overview, IPC */
 (function () {
   'use strict';
 
-  var Store = window.AeraStore;
+  var Store = window.AeroStore;
   var DESKTOP = !!(window.electronAPI && window.electronAPI.isDesktop);
 
   var state = { tabs: [], activeId: null, seq: 0, closed: [] };
+
+  /* ── session persistence (restore on boot when "home on startup" is off) ── */
+  var SKEY = 'aera.session.v1';
+  var saveTimer = null;
+  function saveSession() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      try {
+        var activeIdx = -1;
+        for (var i = 0; i < state.tabs.length; i++) if (state.tabs[i].id === state.activeId) { activeIdx = i; break; }
+        localStorage.setItem(SKEY, JSON.stringify({
+          urls: state.tabs.map(function (t) { return t.url; }),
+          active: activeIdx
+        }));
+      } catch (_) {}
+    }, 250);
+  }
 
   /* ═══ helpers ═══ */
   function $(id) { return document.getElementById(id); }
@@ -16,10 +33,10 @@
     return e;
   }
   function hostOf(url) { try { return new URL(url).hostname.replace(/^www\./, ''); } catch (_) { return url || ''; } }
-  function isInternalUrl(u) { return /^aera:\/\//i.test(u || ''); }
+  function isInternalUrl(u) { return /^(aero|aera):\/\//i.test(u || ''); }
 
-  window.AeraUI = {
-    version: '2.3.7',
+  window.AeroUI = {
+    version: '2.3.11',
     toast: toast,
     createTab: createTab,
     navigateActive: function (url) {
@@ -39,7 +56,8 @@
   function normalizeInput(q) {
     q = (q || '').trim();
     if (!q) return null;
-    if (/^https?:\/\//i.test(q) || /^aera:\/\//i.test(q)) return q;
+    if (/^https?:\/\//i.test(q) || /^(aero|aera):\/\//i.test(q)) return q;
+    if (/^localhost(:\d+)?(\/.*)?$/i.test(q)) return 'http://' + q;
     if (/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(q) && !q.match(/\s/)) return 'https://' + q;
     var eng = Store.engines[Store.get().searchEngine] || Store.engines.google;
     return eng.template.replace('%s', encodeURIComponent(q));
@@ -56,7 +74,7 @@
     state.seq++;
     var id = 't' + state.seq;
     var cfg = Store.get();
-    if (!url) url = 'aera://newtab';
+    if (!url) url = 'aero://newtab';
 
     var kind = 'web';
     if (isInternalUrl(url)) kind = url.indexOf('settings') !== -1 ? 'settings' : 'newtab';
@@ -172,6 +190,7 @@
 
     $('views').appendChild(view);
     state.tabs.push(tab);
+    saveSession();
 
     if (opts.activate !== false) setActive(id);
 
@@ -187,8 +206,8 @@
       navigate: function (u) { tabNavigate(tab, u); },
       onSettingsChanged: function () { Store.applyTheme(); applyCompact(); }
     };
-    if (tab.kind === 'newtab') window.AeraNewTab.render(tab.pageEl, ctx);
-    else if (tab.kind === 'settings') window.AeraSettings.render(tab.pageEl, ctx);
+    if (tab.kind === 'newtab') window.AeroNewTab.render(tab.pageEl, ctx);
+    else if (tab.kind === 'settings') window.AeroSettings.render(tab.pageEl, ctx);
   }
 
   function setFaviconSpan(span, tab) {
@@ -235,13 +254,16 @@
       tab.btnEl.remove();
       tab.viewEl.remove();
       if (tab.wv) { try { tab.wv.stop(); tab.wv.remove(); } catch (_) {} }
-      state.tabs.splice(idx, 1);
+      /* remove by identity: captured idx is stale when several tabs close at once */
+      var at = state.tabs.indexOf(tab);
+      if (at !== -1) state.tabs.splice(at, 1);
+      saveSession();
       if (state.tabs.length === 0) {
-        createTab('aera://newtab');
+        createTab('aero://newtab');
         return;
       }
       if (state.activeId === id) {
-        var next = state.tabs[Math.min(idx, state.tabs.length - 1)];
+        var next = state.tabs[Math.min(at, state.tabs.length - 1)];
         setActive(next.id);
       }
     }, 170);
@@ -259,6 +281,7 @@
     updateOmnibox();
     updateNavButtons();
     closeOverview();
+    saveSession();
   }
 
   function tabNavigate(tab, url, opts) {
@@ -284,6 +307,7 @@
       }
       tab.viewEl.classList.add('active');
       renderInternal(tab);
+      saveSession();
       if (tab.id === state.activeId) { updateOmnibox(); updateNavButtons(); }
       return;
     }
@@ -326,6 +350,7 @@
         tab.viewEl.appendChild(fr);
       }
     }
+    saveSession();
     if (tab.id === state.activeId) { updateOmnibox(); updateNavButtons(); }
   }
 
@@ -404,7 +429,7 @@
     } else if (t.kind === 'settings') {
       addressbar.classList.add('webpage');
       addressbar.classList.remove('om-newtab');
-      omnibox.value = 'aera://settings';
+      omnibox.value = 'aero://settings';
       omnibox.placeholder = '';
     } else {
       addressbar.classList.add('webpage');
@@ -549,7 +574,7 @@
     else if (t.kind === 'newtab' || t.kind === 'settings') renderInternal(t);
     else if (t.fr) t.fr.src = t.fr.src;
   });
-  $('btn-newtab').addEventListener('click', function () { createTab('aera://newtab'); });
+  $('btn-newtab').addEventListener('click', function () { createTab('aero://newtab'); });
   $('btn-settings').addEventListener('click', openSettings);
   $('btn-overview').addEventListener('click', function () { toggleOverview(); });
 
@@ -557,7 +582,7 @@
     for (var i = 0; i < state.tabs.length; i++) {
       if (state.tabs[i].kind === 'settings') { setActive(state.tabs[i].id); return; }
     }
-    createTab('aera://settings');
+    createTab('aero://settings');
   }
 
   /* ═══ overview ═══ */
@@ -657,7 +682,7 @@
 
   function tabCtxMenu(e, tab) {
     showCtxMenu(e.clientX, e.clientY, [
-      { icon: IC.plus, label: 'Новая вкладка', kbd: 'Ctrl+T', action: function () { createTab('aera://newtab'); } },
+      { icon: IC.plus, label: 'Новая вкладка', kbd: 'Ctrl+T', action: function () { createTab('aero://newtab'); } },
       { icon: IC.dup, label: 'Дублировать', action: function () { createTab(tab.url); } },
       '-',
       { icon: IC.reload, label: 'Обновить', kbd: 'Ctrl+R', action: function () { setActive(tab.id); $('btn-reload').click(); } },
@@ -723,7 +748,7 @@
   document.addEventListener('keydown', function (e) {
     var ctrl = e.ctrlKey || e.metaKey;
     if (!ctrl) {
-      if (e.key === 'Escape') { closeOverview(); window.AeraModal.close(); }
+      if (e.key === 'Escape') { closeOverview(); window.AeroModal.close(); }
       if (e.key === 'F5') { $('btn-reload').click(); }
       return;
     }
@@ -736,9 +761,9 @@
       else toast('Нет закрытых вкладок');
       return;
     }
-    if (e.shiftKey && e.key === 'Tab') { e.preventDefault(); cycleTab(1); return; }
+    if (e.shiftKey && e.key === 'Tab') { e.preventDefault(); cycleTab(-1); return; }
     if (e.key === 'Tab') { e.preventDefault(); cycleTab(1); return; }
-    if (k === 't') { e.preventDefault(); createTab('aera://newtab'); }
+    if (k === 't') { e.preventDefault(); createTab('aero://newtab'); }
     else if (k === 'w') { e.preventDefault(); if (activeTab()) closeTab(activeTab().id); }
     else if (k === 'l') { e.preventDefault(); omnibox.focus(); }
     else if (k === 'r') { e.preventDefault(); $('btn-reload').click(); }
@@ -783,13 +808,29 @@
 
     if (DESKTOP && window.electronAPI.version) {
       window.electronAPI.version().then(function (v) {
-        window.AeraUI.version = v || '2.3.7';
+        window.AeroUI.version = v || '2.3.11';
       }).catch(function () {});
     }
 
-    createTab('aera://newtab');
+    /* "Открывать новую вкладку при запуске" (default on) — otherwise restore last session */
+    var restored = false;
+    if (Store.get().homeOnStartup === false) {
+      try {
+        var sess = JSON.parse(localStorage.getItem(SKEY) || 'null');
+        if (sess && sess.urls && sess.urls.length) {
+          var act = typeof sess.active === 'number' && sess.urls[sess.active] ? sess.active : 0;
+          for (var i = 0; i < sess.urls.length; i++) {
+            if (!sess.urls[i]) continue;
+            createTab(sess.urls[i], { activate: i === act });
+          }
+          restored = true;
+        }
+      } catch (_) {}
+    }
+    if (!restored) createTab('aero://newtab');
 
     window.addEventListener('beforeunload', function () {
+      saveSession();
       if (Store.get().clearOnExit && window.electronAPI && window.electronAPI.clearBrowsingData) {
         try { window.electronAPI.clearBrowsingData(); } catch (_) {}
       }

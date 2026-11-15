@@ -4,10 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Новая вкладка</title>
-  <!-- Фавикон начальной страницы: лого Aera вместо буквенной плитки
-       (вкладка в панели получает настоящую картинку через
-       page-favicon-updated). -->
-  <link rel="icon" type="image/png" href="assets/logo-256.png" />
   <style>
     /* ============================================================
        Aera 2.3 — флагманская начальная страница с конструктором виджетов.
@@ -200,23 +196,21 @@
       min-width: 0;
     }
 
-    /* Заголовок секции — как в Safari Start Page: всегда виден, жирный,
-       почти чёрный; инструменты правки появляются только в режиме правки. */
+    /* заголовок виджета виден только в режиме правки — как у флагманов */
     .wg-head {
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      margin-bottom: 12px;
-      padding: 0 4px;
+      margin-bottom: 10px;
     }
-    body.nt-edit .wg-head { animation: wg-fade 0.3s ease; }
+    body.nt-edit .wg-head { display: flex; animation: wg-fade 0.3s ease; }
     @keyframes wg-fade { from { opacity: 0; } to { opacity: 1; } }
     .wg-head h2 {
-      font-size: 15px;
+      font-size: 12.5px;
       font-weight: 700;
-      letter-spacing: -0.01em;
-      color: var(--text);
+      letter-spacing: 0.02em;
+      color: var(--text-2);
     }
     .wg-tools {
       display: flex;
@@ -388,8 +382,7 @@
     .eng-chip2:active { transform: scale(0.94); }
 
     /* ---------------- Плитки ссылок (диск / закладки / частые) ----------------
-       Геометрия Safari Start Page: скруглённые квадраты, фавикон крупно,
-       буква-заглушка — белая на серой плитке (как в Safari). */
+       Плитки выстраиваются по центру — как у флагманов. */
     .tiles {
       display: flex;
       flex-wrap: wrap;
@@ -420,25 +413,19 @@
       height: 56px;
       display: grid;
       place-items: center;
-      border-radius: 12px;
+      border-radius: 50%;
       background: var(--tile-bg);
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-      font-size: 20px;
-      font-weight: 600;
-      color: #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
       transition: transform 0.22s var(--zb-spring), box-shadow 0.22s ease;
     }
     .tile-btn:hover .tile-c {
       transform: translateY(-2px) scale(1.05);
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
     }
-    .tile-c img { width: 38px; height: 38px; border-radius: 9px; }
-    /* плитка без фавикона — серый квадрат с белой буквой (как в Safari) */
-    .tile-c:not(:has(img)) {
-      background: #d8d8dd;
-      color: #fff;
-      box-shadow: none;
-    }
+    .tile-c img { width: 30px; height: 30px; border-radius: 7px; }
     .tile-label {
       max-width: 100%;
       font-size: 11px;
@@ -1695,10 +1682,10 @@
       var WIDGET_META = {
         clock:    { name: 'Часы',              defSize: 2 },
         search:   { name: 'Поиск',             defSize: 2 },
-        dial:     { name: 'Избранное',         defSize: 2 },
+        dial:     { name: 'Быстрые ссылки',    defSize: 2 },
         bookmarks:{ name: 'Закладки',          defSize: 2 },
         freq:     { name: 'Часто посещаемые',  defSize: 2 },
-        protect:  { name: 'Отчёт о защите',    defSize: 1 },
+        protect:  { name: 'Защита',            defSize: 1 },
         note:     { name: 'Заметка',           defSize: 1 },
         link:     { name: 'Ссылка-карточка',   defSize: 1 }
       };

@@ -150,24 +150,8 @@
       }
     });
 
-    /* Прогресс установки показывает 12-store-ui.js (тосты + кнопки магазина). */
-
-    /* Настройки изменились в отдельном окне настроек — применяем в основном окне. */
-    window.zdesktop.on('settings-updated', (next) => {
-      if (!next || typeof next !== 'object') return;
-      let changed = false;
-      Object.keys(A.settings).forEach((k) => {
-        if (next[k] !== undefined && A.settings[k] !== next[k]) {
-          A.settings[k] = next[k];
-          changed = true;
-        }
-      });
-      if (changed) {
-        A.LS.set('zsettings', A.settings);
-        if (A.applyAll) A.applyAll();
-        if (A.settingsUI && A.settingsUI.fill) A.settingsUI.fill();
-        if (A.bookmarks && A.bookmarks.render) A.bookmarks.render();
-      }
+    window.zdesktop.on('extension-install-progress', (p) => {
+      if (p && p.msg) A.toast(p.msg);
     });
   }
 

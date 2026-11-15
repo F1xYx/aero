@@ -106,7 +106,7 @@
     });
 
     wv.addEventListener('page-favicon-updated', (e) => {
-      const icons = ((e && e.favicons) || []).filter((i) => i && i !== 'data:' && i !== 'data:,');
+      const icons = (e && e.favicons) || [];
       if (icons.length) tab.favicon = icons[icons.length - 1];
       A.tabs.renderTabs();
       if (tab.id === A.tabs.activeId()) A.addr.syncAddressUI();

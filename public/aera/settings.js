@@ -1,8 +1,8 @@
-/* Aera — Settings page (aera://settings): full-page, Safari-style window */
+/* Aero — Settings page (aero://settings): full-page, Safari-style window */
 (function () {
   'use strict';
 
-  var Store = window.AeraStore;
+  var Store = window.AeroStore;
 
   function el(tag, cls, text) {
     var e = document.createElement(tag);
@@ -65,7 +65,7 @@
     }
   ];
 
-  window.AeraSettings = {
+  window.AeroSettings = {
     render: function (container, ctx) {
       ctx = ctx || {};
       var c = Store.get();
@@ -76,7 +76,7 @@
 
       var head = el('div', 'settings-head');
       head.appendChild(el('h1', null, 'Настройки'));
-      head.appendChild(el('p', null, 'Aera — браузер в стиле Safari 27 (Golden Gate)'));
+      head.appendChild(el('p', null, 'Aero — браузер в стиле Safari 27 (Golden Gate)'));
       win.appendChild(head);
 
       var tabs = el('div', 'settings-tabs');
@@ -206,7 +206,7 @@
           sec.appendChild(el('p', 'hint', 'Фон, раскладка и все виджеты — как в отдельной панели настроек виджетов.'));
           var holder = el('div');
           sec.appendChild(holder);
-          window.AeraWidgetsSettings.render(holder, {
+          window.AeroWidgetsSettings.render(holder, {
             refresh: function () { if (ctx.onSettingsChanged) ctx.onSettingsChanged(); }
           });
         },
@@ -217,7 +217,7 @@
           var bHist = el('button', 'btn-danger', 'Очистить историю');
           bHist.addEventListener('click', function () {
             Store.history.clear();
-            if (window.AeraUI && window.AeraUI.toast) window.AeraUI.toast('История очищена');
+            if (window.AeroUI && window.AeroUI.toast) window.AeroUI.toast('История очищена');
             rerender();
           });
           var rowH = el('div', 'field-row');
@@ -230,14 +230,14 @@
           bData.addEventListener('click', function () {
             if (window.electronAPI && window.electronAPI.clearBrowsingData) {
               window.electronAPI.clearBrowsingData().then(function (ok) {
-                if (window.AeraUI && window.AeraUI.toast) window.AeraUI.toast(ok ? 'Данные сайтов очищены' : 'Не удалось очистить');
+                if (window.AeroUI && window.AeroUI.toast) window.AeroUI.toast(ok ? 'Данные сайтов очищены' : 'Не удалось очистить');
               });
             } else {
-              if (window.AeraUI && window.AeraUI.toast) window.AeraUI.toast('Доступно только в приложении Aera');
+              if (window.AeroUI && window.AeroUI.toast) window.AeroUI.toast('Доступно только в приложении Aero');
             }
           });
           var rowD = el('div', 'field-row');
-          rowD.appendChild(Object.assign(el('div'), { innerHTML: '<div class="field-label">Кэш, cookies, localStorage</div><div class="field-sub">Данные Aera и настроек не будут затронуты</div>' }));
+          rowD.appendChild(Object.assign(el('div'), { innerHTML: '<div class="field-label">Кэш, cookies, localStorage</div><div class="field-sub">Данные Aero и настроек не будут затронуты</div>' }));
           rowD.appendChild(bData);
           sec.appendChild(rowD);
 
@@ -250,17 +250,17 @@
           var logo = el('div', 'about-logo');
           var img = el('img');
           img.src = 'icon.png';
-          img.alt = 'Aera';
+          img.alt = 'Aero';
           logo.appendChild(img);
           card.appendChild(logo);
           var info = el('div');
-          info.appendChild(el('div', 'about-name', 'Aera'));
-          info.appendChild(el('div', 'about-ver', 'Версия ' + (window.AeraUI && window.AeraUI.version ? window.AeraUI.version : '2.3.7')));
+          info.appendChild(el('div', 'about-name', 'Aero'));
+          info.appendChild(el('div', 'about-ver', 'Версия ' + (window.AeroUI && window.AeroUI.version ? window.AeroUI.version : '2.3.11')));
           info.appendChild(el('div', 'about-line',
             'Интерфейс в стиле Safari 27 (Golden Gate / macOS Tahoe).\n' +
             'Движок: ' + (navigator.userAgent.indexOf('Firefox') !== -1 ? 'Gecko' : 'Chromium') +
             ' · Рендеринг: ' + (window.electronAPI ? 'webview (Chromium)' : 'iframe (веб-режим)') + '.\n' +
-            'Aera не связана с Apple Inc. Safari — торговая марка Apple.'));
+            'Aero не связана с Apple Inc. Safari — торговая марка Apple.'));
           info.appendChild(el('div', 'about-line', 'Сделано с любовью к деталям.'));
           card.appendChild(info);
           sec.appendChild(card);
@@ -276,10 +276,10 @@
             var blob = new Blob([Store.exportJSON()], { type: 'application/json' });
             var a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'aera-settings.json';
+            a.download = 'aero-settings.json';
             a.click();
             setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
-            if (window.AeraUI && window.AeraUI.toast) window.AeraUI.toast('Настройки экспортированы');
+            if (window.AeroUI && window.AeroUI.toast) window.AeroUI.toast('Настройки экспортированы');
           });
           r1.appendChild(bExp);
           sec.appendChild(r1);
@@ -302,10 +302,10 @@
                 Store.importJSON(String(reader.result));
                 Store.applyTheme();
                 document.documentElement.setAttribute('data-compact-tabs', Store.get().compactTabs ? 'on' : 'off');
-                if (window.AeraUI && window.AeraUI.toast) window.AeraUI.toast('Настройки импортированы');
+                if (window.AeroUI && window.AeroUI.toast) window.AeroUI.toast('Настройки импортированы');
                 rerender();
               } catch (_) {
-                if (window.AeraUI && window.AeraUI.toast) window.AeraUI.toast('Некорректный файл настроек');
+                if (window.AeroUI && window.AeroUI.toast) window.AeroUI.toast('Некорректный файл настроек');
               }
             };
             reader.readAsText(f);

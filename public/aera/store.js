@@ -1,4 +1,4 @@
-/* Aera - settings store (shared by app, newtab, settings) */
+/* Aero - settings store (shared by app, newtab, settings) */
 (function () {
   'use strict';
 
@@ -15,6 +15,7 @@
     suggestHistory: true,
     keepHistory: true,
     clearOnExit: false,
+    homeOnStartup: true,      // true: show widget page on launch; false: restore last session
     wallpaper: 'aurora',      // preset id | 'custom'
     wallpaperUrl: '',
     wallpaperDim: 20,         // 0..60 % darkening
@@ -143,5 +144,5 @@
   Store.applyTheme = applyTheme;
   applyTheme();
 
-  window.AeraStore = Store;
+  window.AeroStore = Store;
 })();

@@ -11,7 +11,7 @@
   const WEB = !DESKTOP;
 
   const A = {
-    VERSION: '2.3.6',
+    VERSION: '2.2.0',
     DESKTOP,
     WEB
   };
@@ -72,48 +72,25 @@
     return span;
   };
 
-  /** Иконка домена через сервис фавиконок Google (как на начальной странице).
-      Работает онлайн; при ошибке — буквенная плитка. */
-  A.domainFaviconUrl = function (url) {
-    try {
-      const h = new URL(url).hostname;
-      if (!h || /^localhost|\d+\.\d+\.\d+\.\d+/.test(h)) return '';
-      return 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(h) + '&sz=64';
-    } catch (e) { return ''; }
-  };
-
   A.faviconEl = function (favicon, url, size) {
     const box = document.createElement('span');
     box.className = 'fav';
-    const s = size || 16;
-    const urlStr = String(url || '');
-    const img = document.createElement('img');
-    img.width = s;
-    img.height = s;
-    img.alt = '';
-    img.referrerPolicy = 'no-referrer';
-
-    img.onerror = () => {
-      img.remove();
-      box.textContent = '';
-      box.appendChild(A.letterTile(urlStr));
-    };
-
     if (favicon) {
+      const img = document.createElement('img');
       img.src = favicon;
-    } else if (A.isNewtabUrl(urlStr)) {
-      /* Начальная страница: логотип Aera. */
-      img.src = 'assets/logo-256.png';
-    } else {
-      const guessed = A.domainFaviconUrl(urlStr);
-      if (!guessed) {
+      img.width = size || 16;
+      img.height = size || 16;
+      img.alt = '';
+      img.referrerPolicy = 'no-referrer';
+      img.onerror = () => {
         img.remove();
-        box.appendChild(A.letterTile(urlStr));
-        return box;
-      }
-      img.src = guessed;
+        box.textContent = '';
+        box.appendChild(A.letterTile(url));
+      };
+      box.appendChild(img);
+    } else {
+      box.appendChild(A.letterTile(url));
     }
-    box.appendChild(img);
     return box;
   };
 
@@ -193,7 +170,7 @@
     engine: 'google',            // поисковик адресной строки и новой вкладки
     home: 'newtab.html',         // домашняя страница (по умолчанию — начальная)
     siteTheme: 'system',         // system | force-dark | light — тема САЙТОВ
-    theme: 'system',             // dark | light | system — тема ИНТЕРФЕЙСА (Safari следует за системой)
+    theme: 'light',              // dark | light | system — тема ИНТЕРФЕЙСА
     startup: 'restore',          // newtab | restore — поведение при запуске
     showBookmarks: true,         // панель закладок
     animations: true,            // плавные переходы
@@ -205,8 +182,6 @@
     wallpaper: 'sunset',         // обои окна и новой вкладки
     accent: 'azure',             // акцентный цвет интерфейса
     glass: true,                 // «жидкое стекло»: прозрачные панели
-    glassLevel: 50,              // 0 = ультра-прозрачное … 100 = сильно тонированное (слайдер Liquid Glass из macOS 27)
-    pageTint: true,               // окраска панели цветом сайта (как Safari)
     newtabAfterActive: true,     // новая вкладка после активной
     dblCloseTab: false,          // закрытие вкладки двойным кликом
     wheelTabs: true,             // переключение вкладок колесом
