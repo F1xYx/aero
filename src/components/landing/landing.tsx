@@ -36,7 +36,7 @@ import {
 import { DesktopDownloads } from "@/components/desktop-downloads";
 import { GlassWindow } from "@/components/landing/browser-mockups";
 
-const VERSION = "2.3.15";
+const VERSION = "2.3.16";
 
 const NAV_LINKS = [
   { href: "#features", label: "Возможности" },
@@ -640,8 +640,13 @@ function DownloadSection() {
 
 const CHANGELOG = [
   {
-    version: "2.3.15",
+    version: "2.3.16",
     current: true,
+    text: "Сборки снова доступны: установщик и портативная версия пересобраны и подписаны свежим сертификатом «Aero Team». Сертификат доверия по-прежнему встроен — отдельно качать ничего не нужно.",
+  },
+  {
+    version: "2.3.15",
+    current: false,
     text: "Сертификат доверия встроен: установщик сам добавляет его в Windows (одно окно — «Да»), портативная версия делает то же при первом запуске. Отдельно качать сертификат больше не нужно. Все кнопки и внешний вид проверены.",
   },
   {
