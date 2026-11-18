@@ -37,7 +37,7 @@ import {
 import { DesktopDownloads } from "@/components/desktop-downloads";
 import { GlassWindow } from "@/components/landing/browser-mockups";
 
-const VERSION = "2.3.13";
+const VERSION = "2.3.14";
 
 const NAV_LINKS = [
   { href: "#features", label: "Возможности" },
@@ -652,8 +652,13 @@ function DownloadSection() {
 
 const CHANGELOG = [
   {
-    version: "2.3.13",
+    version: "2.3.14",
     current: true,
+    text: "Плавнее некуда: новая система easing в стиле Apple, каскадные появления виджетов и карточек, переключатели на transform, уважение к «уменьшить движение» в Windows.",
+  },
+  {
+    version: "2.3.13",
+    current: false,
     text: "Окно снова перетаскивается (весь тайтлбар и тулбар — зоны захвата), стекло над живыми сайтами: контент заходит под хром и размывается, плюс тумблеры скорости рендеринга.",
   },
   {

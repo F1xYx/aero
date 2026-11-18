@@ -25,7 +25,7 @@ function createWindow() {
     frame: false,
     backgroundColor: '#fbe9d7',
     icon: iconPath(),
-    title: 'Aera',
+    title: 'Aero',
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       webviewTag: true,

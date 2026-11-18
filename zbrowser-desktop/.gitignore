@@ -1,0 +1,7 @@
+# ── Приватный материал подписи — НИКОГДА не коммитить ──
+build/codesign/aero-codesign.pfx
+build/codesign/pass.txt
+build/signing/aero-code.key.pem
+
+# артефакты сборки
+dist/

@@ -298,8 +298,10 @@
       var navigate = ctx.navigate || function (u) {};
       var cfg = Store.get();
 
+      var isRefresh = !!container.querySelector(':scope > .newtab');
       container.innerHTML = '';
-      var nt = el('div', 'newtab');
+      /* при перерисовке (обои, edit-mode, порядок) не переигрываем входы */
+      var nt = el('div', 'newtab' + (isRefresh ? ' no-replay' : ''));
 
       /* wallpaper */
       var wp = el('div', 'wp');
@@ -432,13 +434,15 @@
 
       var refresh = function () { window.AeroNewTab.render(container, ctx); };
 
-      function renderWidgets() {
+      function renderWidgets(animate) {
         grid.innerHTML = '';
         var c = Store.get();
         c.widgets.order.forEach(function (key, i) {
           if (c.widgets.hidden[key]) return;
           var card = el('div', 'widget ' + (SIZE_CLASS[c.widgets.sizes[key]] || 'wS'));
-          card.style.animationDelay = (0.05 + i * 0.05) + 's';
+          /* каскад появления только при первом рендере страницы */
+          if (animate) { card.style.animationDelay = (0.05 + i * 0.05) + 's'; }
+          else { card.style.animation = 'none'; }
           card.dataset.key = key;
 
           /* edit-mode controls */
@@ -510,7 +514,7 @@
           grid.appendChild(card);
         });
       }
-      renderWidgets();
+      renderWidgets(true);
 
       /* tools row */
       var tools = el('div', 'newtab-tools');
