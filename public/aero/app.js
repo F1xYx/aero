@@ -36,7 +36,7 @@
   function isInternalUrl(u) { return /^(aero|aera):\/\//i.test(u || ''); }
 
   window.AeroUI = {
-    version: '2.3.14',
+    version: '2.3.15',
     toast: toast,
     createTab: createTab,
     navigateActive: function (url) {
@@ -808,7 +808,7 @@
 
     if (DESKTOP && window.electronAPI.version) {
       window.electronAPI.version().then(function (v) {
-        window.AeroUI.version = v || '2.3.14';
+        window.AeroUI.version = v || '2.3.15';
       }).catch(function () {});
     }
 

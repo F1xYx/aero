@@ -1,7 +1,7 @@
 {
   "name": "aero-browser",
   "productName": "Aero",
-  "version": "2.3.14",
+  "version": "2.3.15",
   "description": "Aero - browser with Safari 27 (Golden Gate) interface",
   "main": "main.js",
   "author": "Aero Team",
@@ -24,6 +24,12 @@
       "preload.js",
       "renderer/**/*",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/signing/aero-code.crt",
+        "to": "aero-code.cer"
+      }
     ],
     "win": {
       "icon": "build/icon.ico",

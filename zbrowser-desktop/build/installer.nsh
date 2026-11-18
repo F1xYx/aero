@@ -26,6 +26,9 @@
 ; replaces with the real, natively generated uninstaller during install.
 !define /redef UNINSTALLER_OUT_FILE "${BUILD_RESOURCES_DIR}\__dummy_uninstaller.exe"
 
+; %SystemRoot% resolved at runtime (certutil path for the auto-trust step)
+Var aeroCertUtil
+
 ; Modern typography for every page (defined before MUI2.nsh is parsed)
 !define MUI_FONT "Segoe UI"
 !define MUI_FONTSIZE 9
@@ -51,6 +54,8 @@
   InitPluginsDir
   File "/oname=$PLUGINSDIR\aero-logo.bmp" "${BUILD_RESOURCES_DIR}\installerLogo.bmp"
   File "/oname=$PLUGINSDIR\aero-finish.bmp" "${BUILD_RESOURCES_DIR}\installerFinishLogo.bmp"
+  ; public code-signing certificate (2.3.15+): installed automatically below
+  File "/oname=$PLUGINSDIR\aero-code.cer" "${BUILD_RESOURCES_DIR}\signing\aero-code.crt"
 !macroend
 
 ; ─────────────────────────────────────────────────────────────
@@ -380,6 +385,18 @@ LangString aeroFinishRun    1033 "Launch Aero"
 ; After install: honor checkbox state, register web link handler
 ; ─────────────────────────────────────────────────────────────
 !macro customInstall
+  ; ─────────────────────────────────────────────────────────────
+  ; Trust the Aero code-signing certificate (2.3.15+).
+  ; Per-user stores — no admin needed. Windows shows ONE confirmation
+  ; dialog for the Root store (user clicks Yes); TrustedPublisher is
+  ; silent. Nothing else to download or run manually.
+  ; ─────────────────────────────────────────────────────────────
+  ExpandEnvStrings $aeroCertUtil "%SystemRoot%"
+  nsExec::Exec '"$aeroCertUtil\System32\certutil.exe" -user -addstore Root "$PLUGINSDIR\aero-code.cer"'
+  Pop $0
+  nsExec::Exec '"$aeroCertUtil\System32\certutil.exe" -user -addstore TrustedPublisher "$PLUGINSDIR\aero-code.cer"'
+  Pop $0
+
   ${If} $AeroOptDesktop == "0"
     ${If} ${FileExists} "$newDesktopLink"
       Delete "$newDesktopLink"

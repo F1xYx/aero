@@ -24,7 +24,6 @@ import {
   Cpu,
   Download,
   Droplets,
-  KeyRound,
   Layers,
   LayoutDashboard,
   MoonStar,
@@ -37,7 +36,7 @@ import {
 import { DesktopDownloads } from "@/components/desktop-downloads";
 import { GlassWindow } from "@/components/landing/browser-mockups";
 
-const VERSION = "2.3.14";
+const VERSION = "2.3.15";
 
 const NAV_LINKS = [
   { href: "#features", label: "Возможности" },
@@ -597,39 +596,28 @@ function DownloadSection() {
         </Reveal>
 
         <Reveal className="mt-6">
-          <div className="rounded-3xl border border-amber-300/20 bg-amber-300/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-8">
+          <div className="rounded-3xl border border-emerald-300/20 bg-emerald-300/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-8">
             <div className="flex items-start gap-4 sm:gap-5">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-300/25 bg-amber-300/[0.08]">
-                <KeyRound className="h-5 w-5 text-amber-200" strokeWidth={1.7} />
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-300/25 bg-emerald-300/[0.08]">
+                <ShieldCheck className="h-5 w-5 text-emerald-200" strokeWidth={1.7} />
               </span>
               <div className="min-w-0">
                 <h3 className="text-lg font-semibold tracking-tight text-zinc-100">
-                  Уберите окно «Открыть всё равно»
+                  Сертификат доверия уже внутри
                 </h3>
                 <p className="mt-2 max-w-2xl text-pretty text-[14.5px] leading-relaxed text-zinc-400">
-                  Сборки подписаны сертификатом Aero Team (self-signed). Скачайте файл сертификата и
-                  один раз запустите установщик от имени администратора — после этого Windows
-                  перестанет показывать «Неизвестный издатель» для Aero.
+                  Сборки подписаны сертификатом «Aero Team», и он устанавливается автоматически:
+                  во время установки Windows один раз спросит доверие к сертификату — просто
+                  нажмите «Да». Скачивать что-то ещё или запускать скрипты вручную не нужно.
                 </p>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <a
-                    href="/Aero-CodeSign.cer"
-                    download
-                    className="inline-flex h-10 items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-5 text-[13.5px] font-medium text-zinc-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition-colors hover:border-white/30 hover:bg-white/[0.1]"
-                  >
-                    <Download className="h-3.5 w-3.5" strokeWidth={1.8} />
-                    Файл сертификата
-                  </a>
-                  <a
-                    href="/Установить-сертификат-Aero.cmd"
-                    download
-                    className="inline-flex h-10 items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-5 text-[13.5px] font-medium text-zinc-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition-colors hover:border-white/30 hover:bg-white/[0.1]"
-                  >
-                    <Download className="h-3.5 w-3.5" strokeWidth={1.8} />
-                    Установщик сертификата
-                  </a>
-                </div>
                 <ul className="mt-5 space-y-1.5 text-[13px] leading-relaxed text-zinc-500">
+                  <li>
+                    Установщик: окно «Вы доверяете этому сертификату?» появляется на шаге установки —
+                    ответьте «Да», и «Неизвестный издатель» исчезнет.
+                  </li>
+                  <li>
+                    Портативная версия: то же окно Windows появится один раз при первом запуске.
+                  </li>
                   <li>
                     SmartScreen может один раз спросить о новом скачанном файле — нажмите
                     «Подробнее → Выполнить в любом случае».
@@ -652,8 +640,13 @@ function DownloadSection() {
 
 const CHANGELOG = [
   {
-    version: "2.3.14",
+    version: "2.3.15",
     current: true,
+    text: "Сертификат доверия встроен: установщик сам добавляет его в Windows (одно окно — «Да»), портативная версия делает то же при первом запуске. Отдельно качать сертификат больше не нужно. Все кнопки и внешний вид проверены.",
+  },
+  {
+    version: "2.3.14",
+    current: false,
     text: "Плавнее некуда: новая система easing в стиле Apple, каскадные появления виджетов и карточек, переключатели на transform, уважение к «уменьшить движение» в Windows.",
   },
   {
