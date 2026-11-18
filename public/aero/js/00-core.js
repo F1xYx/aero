@@ -181,7 +181,7 @@
     downloadsAsk: false,         // спрашивать путь сохранения (десктоп)
     wallpaper: 'sunset',         // обои окна и новой вкладки
     accent: 'azure',             // акцентный цвет интерфейса
-    glass: true,                 // «жидкое стекло»: прозрачные панели
+    glass: 'high',               // «жидкое стекло»: low | medium | high | false (выкл)
     newtabAfterActive: true,     // новая вкладка после активной
     dblCloseTab: false,          // закрытие вкладки двойным кликом
     wheelTabs: true,             // переключение вкладок колесом

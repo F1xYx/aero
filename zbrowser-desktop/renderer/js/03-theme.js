@@ -35,10 +35,11 @@
     document.documentElement.dataset.accent = a;
   };
 
-  /* «Стекло»: быстрая полупрозрачность панелей (rgba + 1px рамки),
-     без backdrop-filter — так держатся стабильные 60–144 FPS. */
+  /* «Жидкое стекло»: парящий хром с backdrop-blur над живым контентом
+     (обои и сайты заходят под тайтлбар/тулбар). Выключение = сплошной хром. */
   A.applyGlass = function () {
-    document.body.classList.toggle('glass', A.settings.glass !== false);
+    var on = A.settings.glass !== false && A.settings.glass !== 'off';
+    document.body.classList.toggle('glass', on);
   };
 
   /** Тема САЙТОВ: system | force-dark | light. */

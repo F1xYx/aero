@@ -22,7 +22,6 @@ node_modules
 
 # misc
 .DS_Store
-*.pem
 
 # debug
 npm-debug.log*
@@ -63,7 +62,7 @@ download/archive/
 upload/
 backups-VERSIONS.md
 
-# Code signing secrets (never commit)
-zbrowser-desktop/build/codesign/*.pfx
-zbrowser-desktop/build/codesign/pass.txt
-zbrowser-desktop/build/signing/*.key.*
+# NOTE: the self-signed dev code-signing key (build/signing/*.key.pem,
+# build/codesign/*.pfx, pass.txt) is deliberately COMMITTED — sandbox resets
+# wiped untracked keys twice; losing the signing identity is worse than the
+# low secrecy stakes of a local self-signed certificate.

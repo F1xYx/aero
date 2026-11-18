@@ -37,7 +37,7 @@ import {
 import { DesktopDownloads } from "@/components/desktop-downloads";
 import { GlassWindow } from "@/components/landing/browser-mockups";
 
-const VERSION = "2.3.12";
+const VERSION = "2.3.13";
 
 const NAV_LINKS = [
   { href: "#features", label: "Возможности" },
@@ -652,9 +652,19 @@ function DownloadSection() {
 
 const CHANGELOG = [
   {
-    version: "2.3.12",
+    version: "2.3.13",
     current: true,
-    text: "Настоящее жидкое стекло: хром окна парит над контентом, интенсивность blur — по настройке. Подпись сборок сертификатом.",
+    text: "Окно снова перетаскивается (весь тайтлбар и тулбар — зоны захвата), стекло над живыми сайтами: контент заходит под хром и размывается, плюс тумблеры скорости рендеринга.",
+  },
+  {
+    version: "2.3.12",
+    current: false,
+    text: "Свой красивый установщик: чекбоксы больше не обрезаются, нарисованный баннер с версией.",
+  },
+  {
+    version: "2.3.11",
+    current: false,
+    text: "Перевыпуск сборок с новым сертификатом «Aero Team» после потери ключа.",
   },
   {
     version: "2.3.9",
@@ -665,11 +675,6 @@ const CHANGELOG = [
     version: "2.3.8",
     current: false,
     text: "Aera → Aero, новый логотип — стеклянный шар.",
-  },
-  {
-    version: "2.3.7",
-    current: false,
-    text: "Установщик в стиле Chrome, исправления навигации.",
   },
 ] as const;
 

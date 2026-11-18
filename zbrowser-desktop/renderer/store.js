@@ -133,7 +133,16 @@
     }
     var root = document.documentElement;
     root.setAttribute('data-theme', theme);
-    root.setAttribute('data-glass', s.glass || 'high');
+    /* glass: 'low' | 'medium' | 'high' | false/"off" (выключено).
+       Старые булевы значения из ранних версий мапятся в high/off. */
+    var gv = s.glass;
+    if (gv === false || gv === 'off') gv = 'off';
+    else if (gv !== 'low' && gv !== 'medium' && gv !== 'high') gv = 'high';
+    root.setAttribute('data-glass', gv);
+    /* парящий хром включён всегда, кроме data-glass=off — класс ставим
+       прямо здесь, чтобы он был и при первом запуске (applyGlass из
+       темы вызывается только при смене настроек) */
+    document.body.classList.toggle('glass', gv !== 'off');
     root.setAttribute('data-animations', s.animations ? 'on' : 'off');
     var acc = ACCENTS[s.accent] || ACCENTS.safari;
     root.style.setProperty('--accent', acc[theme]);

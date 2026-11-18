@@ -150,9 +150,17 @@
     }
     var u = 'https://api.open-meteo.com/v1/forecast?latitude=' + cfg.weather.lat + '&longitude=' + cfg.weather.lon +
       '&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=auto&wind_speed_unit=ms';
-    return fetch(u).then(function (r) { return r.json(); }).then(function (d) {
+    /* 8-секундный таймаут: если API недоступен/медленный — не держим виджет
+       в «Загрузка…» на полминуты (частая причина «всё долго грузится»). */
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var tid = ctrl ? setTimeout(function () { try { ctrl.abort(); } catch (_) {} }, 8000) : null;
+    return fetch(u, ctrl ? { signal: ctrl.signal } : undefined).then(function (r) { return r.json(); }).then(function (d) {
+      if (tid) clearTimeout(tid);
       try { localStorage.setItem('aera.weather.cache', JSON.stringify({ lat: cfg.weather.lat, lon: cfg.weather.lon, ts: Date.now(), data: d })); } catch (_) {}
       return d;
+    }).catch(function (err) {
+      if (tid) clearTimeout(tid);
+      throw err;
     });
   }
 

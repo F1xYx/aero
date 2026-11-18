@@ -19,8 +19,9 @@
 html[data-theme="dark"] {
   --bg: #16161a;
   --bg-solid: #16161a;
-  --chrome-tint: rgba(22, 22, 27, .64);
-  --chrome-tint-strong: rgba(16, 16, 21, .8);
+  --chrome-tint: rgba(24, 24, 30, .42);
+  --chrome-tint-strong: rgba(18, 18, 24, .55);
+  --chrome-solid: #16161a;
   --glass: rgba(255, 255, 255, .07);
   --glass-hover: rgba(255, 255, 255, .11);
   --glass-active: rgba(255, 255, 255, .16);
@@ -43,8 +44,9 @@ html[data-theme="dark"] {
 html[data-theme="light"] {
   --bg: #f2f2f4;
   --bg-solid: #f2f2f4;
-  --chrome-tint: rgba(247, 247, 250, .62);
-  --chrome-tint-strong: rgba(252, 252, 255, .8);
+  --chrome-tint: rgba(251, 251, 253, .48);
+  --chrome-tint-strong: rgba(246, 246, 250, .62);
+  --chrome-solid: #f7f7fa;
   --glass: rgba(255, 255, 255, .55);
   --glass-hover: rgba(255, 255, 255, .75);
   --glass-active: rgba(0, 0, 0, .09);
@@ -135,12 +137,13 @@ html[data-theme="dark"] .tl svg { stroke: rgba(0, 0, 0, .6); }
 #tabstrip {
   display: flex; align-items: center; gap: 5px;
   flex: 1; min-width: 0; height: 100%;
-  padding: 7px 0; -webkit-app-region: no-drag;
+  padding: 7px 0; -webkit-app-region: drag;
 }
 .tab {
   display: flex; align-items: center; gap: 7px;
   height: 32px; min-width: 42px; max-width: 200px;
   padding: 0 10px; border-radius: var(--radius-tab);
+  -webkit-app-region: no-drag;
   background: transparent; border: none; outline: none;
   color: var(--tab-inactive-fg); font-family: inherit; font-size: 12.5px;
   cursor: pointer; position: relative; overflow: hidden;
@@ -216,6 +219,14 @@ html[data-web-mode="on"] .win-buttons, html[data-web-mode="on"] .traffic-lights 
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
   position: absolute; top: var(--titlebar-h); left: 0; right: 0;
   z-index: 39;
+  -webkit-app-region: drag;
+}
+/* glass off: classic solid chrome, content sits below */
+body:not(.glass) #titlebar,
+body:not(.glass) #toolbar {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--chrome-solid);
 }
 html[data-theme="light"] #toolbar { border-bottom-color: rgba(0,0,0,.08); }
 
@@ -227,6 +238,7 @@ html[data-theme="light"] #toolbar { border-bottom-color: rgba(0,0,0,.08); }
   display: flex; align-items: center; justify-content: center;
   background: transparent; border: none; outline: none;
   color: var(--text); cursor: pointer;
+  -webkit-app-region: no-drag;
   transition: background .15s var(--spring-fast), transform .1s;
 }
 .tbtn:hover { background: var(--glass-hover); }
@@ -243,6 +255,7 @@ html[data-theme="light"] #toolbar { border-bottom-color: rgba(0,0,0,.08); }
   background: var(--glass);
   border: 1px solid var(--glass-border);
   border-radius: 11px;
+  -webkit-app-region: no-drag;
   transition: background .2s, border-color .2s, box-shadow .2s, transform .25s var(--spring);
 }
 .addressbar:focus-within {
@@ -296,14 +309,20 @@ html[data-theme="light"] .addressbar:focus-within { border-color: rgba(0,0,0,.2)
 #views { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
 .view { position: absolute; inset: 0; display: none; }
 .view.active { display: flex; flex-direction: column; }
-webview, .view iframe.web-frame { flex: 1; width: 100%; height: calc(100% - var(--chrome-h)); margin-top: var(--chrome-h); border: none; background: #fff; }
+/* glass chrome floats OVER live content: sites and web frames span the whole
+   window so the toolbar blurs what is really beneath it (like Safari 27).
+   With glass off (body:not(.glass)) content politely sits below the chrome. */
+webview, .view iframe.web-frame { flex: 1; width: 100%; height: 100%; border: none; background: #fff; }
+body:not(.glass) webview,
+body:not(.glass) .view iframe.web-frame { height: calc(100% - var(--chrome-h)); margin-top: var(--chrome-h); }
 html[data-theme="dark"] webview { background: #1a1a1e; }
 .view iframe.web-frame { background: #fff; }
 .view-entrance { animation: viewIn .3s var(--spring); }
 @keyframes viewIn { from { opacity: 0; transform: scale(.985); } }
 
 /* internal pages */
-.page { flex: 1; overflow: hidden; position: relative; display: flex; flex-direction: column; min-height: 0; margin-top: var(--chrome-h); }
+.page { flex: 1; overflow: hidden; position: relative; display: flex; flex-direction: column; min-height: 0; padding-top: var(--chrome-h); }
+body:not(.glass) .page { padding-top: 0; margin-top: var(--chrome-h); }
 
 /* ═══════════════ New Tab — flagship widgets ═══════════════ */
 .newtab {
@@ -318,7 +337,8 @@ html[data-theme="dark"] webview { background: #1a1a1e; }
   transition: filter .4s, opacity .4s;
 }
 .newtab .wp-dim { position: fixed; inset: 0; z-index: 0; background: rgba(0,0,0,var(--wp-dim, .2)); }
-.newtab-inner { position: relative; z-index: 1; width: 100%; max-width: 1080px; padding: 24px 32px 60px; display: flex; flex-direction: column; align-items: center; }
+.newtab-inner { position: relative; z-index: 1; width: 100%; max-width: 1080px; padding: calc(var(--chrome-h) + 24px) 32px 60px; display: flex; flex-direction: column; align-items: center; }
+body:not(.glass) .newtab-inner { padding-top: 24px; }
 
 /* wallpapers */
 .wp-aurora    { background: radial-gradient(120% 90% at 20% 10%, #2b1055 0%, transparent 55%), radial-gradient(110% 100% at 85% 20%, #0f3460 0%, transparent 60%), radial-gradient(130% 110% at 60% 100%, #7597de33 0%, transparent 55%), linear-gradient(150deg, #16161f 0%, #1d1b2e 45%, #171722 100%); }

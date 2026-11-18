@@ -126,9 +126,12 @@
   const glassInput = document.getElementById('setGlass');
   if (glassInput) {
     glassInput.addEventListener('change', (e) => {
-      A.settings.glass = e.target.checked;
+      A.settings.glass = e.target.checked ? 'high' : false;
       A.saveSettings();
       A.applyGlass();
+      /* синхронизируем в основной Store — data-glass и парящий хром
+         применяются к окну даже после перезапуска */
+      try { if (window.AeroStore && AeroStore.update) AeroStore.update({ glass: A.settings.glass }); } catch (err) { /* noop */ }
       A.toast(e.target.checked ? 'Стекло включено' : 'Стекло выключено');
     });
   }

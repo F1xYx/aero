@@ -16,6 +16,11 @@ let mainWindow = null;
 // Keep a smooth, GPU-accelerated shell with sane defaults
 app.commandLine.appendSwitch('enable-smooth-scrolling');
 app.commandLine.appendSwitch('disable-background-timer-throttling');
+// Windows perf: native occlusion calculation stalls rendering/paint when the
+// window is partially covered by other windows (a known Chromium-on-Windows
+// issue that makes everything feel slow). Both switches are the standard fix.
+app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 
 function createWindow() {
   nativeTheme.themeSource = 'dark'; // dark by default, renderer can switch later
