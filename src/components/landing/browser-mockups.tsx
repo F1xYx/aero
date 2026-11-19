@@ -1,16 +1,20 @@
 "use client";
 
 /* ═══════════════════════════════════════════════════════════════════
-   GlassWindow — стеклянное окно браузера Aero, отрисованное чистым
-   CSS/SVG (никаких скриншотов). Воспроизводит реальный интерфейс
-   приложения: aurora-обои, стеклянный хром с backdrop-blur, вкладки-
-   пилюли Golden Gate, адресная строка и стартовая страница с виджетами.
+   GlassWindow — окно браузера Aero, отрисованное чистым CSS/SVG.
+   Один-в-один повторяет реальный интерфейс приложения 2.3.18:
 
-   Холст фиксированный 1200×740 (пропорция 16:10) и масштабируется под
-   контейнер через transform: scale — типографика всегда в верной
-   пропорции. Параметр `variant` позволяет показать окно дважды:
-   "hero" — статичное, "showcase" — с боковой панелью и перестроением
-   вкладок, управляемым scroll-прогрессом (MotionValue 0…1).
+   • вкладки-пилюли Golden Gate + кнопка «новая вкладка» вплотную
+     к последней вкладке, кнопки окна справа (без traffic lights);
+   • плавающий стеклянный тулбар: назад/вперёд/обновить, адресная
+     строка по центру, обзор вкладок и настройки (шестерёнка) справа;
+   • стартовая страница: приветствие + быстрые ссылки (плитки с
+     иконками сайтов) — без поисковой строки и виджетов;
+   • вариант "showcase" показывает настоящую страницу настроек
+     (сайдбар + сгруппированные строки, liquid-glass).
+
+   Холст фиксированный 1200×740 (пропорция 16:10) и масштабируется
+   под контейнер через transform: scale — типографика всегда верная.
    ═══════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -23,7 +27,6 @@ import {
 import {
   ChevronLeft,
   ChevronRight,
-  Cloud,
   LayoutGrid,
   Lock,
   Minus,
@@ -98,169 +101,64 @@ function WinButton({ children, danger = false }: { children: React.ReactNode; da
 function ToolButton({ children, dim = false }: { children: React.ReactNode; dim?: boolean }) {
   return (
     <span
-      className={`flex h-[30px] w-[30px] items-center justify-center rounded-full border border-white/[0.07] bg-white/[0.07] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ${
+      className={`flex h-[30px] w-[30px] items-center justify-center rounded-[9px] ${
         dim ? "text-[#5c5c62]" : "text-[#c9c9ce]"
-      }`}
+      } transition-colors hover:bg-white/[0.08]`}
     >
       {children}
     </span>
   );
 }
 
-function Widget({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div
-      className={`h-[196px] rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_50px_-24px_rgba(0,0,0,0.55)] backdrop-blur-xl ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-/* ── Виджет: часы (аналоговые + цифровые) ─────────────────────────── */
-function ClockWidget() {
-  return (
-    <Widget>
-      <div className="flex h-full flex-col items-center justify-center gap-3">
-        <div className="relative h-[84px] w-[84px] rounded-full border border-white/[0.14] bg-white/[0.05] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-          <span className="absolute left-1/2 top-[5px] h-[3px] w-[1.5px] -translate-x-1/2 rounded-full bg-white/25" />
-          <span className="absolute bottom-[5px] left-1/2 h-[3px] w-[1.5px] -translate-x-1/2 rounded-full bg-white/25" />
-          <span className="absolute left-[5px] top-1/2 h-[1.5px] w-[3px] -translate-y-1/2 rounded-full bg-white/25" />
-          <span className="absolute right-[5px] top-1/2 h-[1.5px] w-[3px] -translate-y-1/2 rounded-full bg-white/25" />
-          {/* 19:20 → часовая 220°, минутная 120°, секундная живая */}
-          <span
-            className="absolute bottom-[42px] left-1/2 -ml-[1.5px] w-[3px] rounded-full bg-zinc-200/90"
-            style={{ height: 22, transformOrigin: "50% 100%", transform: "rotate(220deg)" }}
-          />
-          <span
-            className="absolute bottom-[42px] left-1/2 -ml-[1px] w-[2px] rounded-full bg-zinc-300/80"
-            style={{ height: 30, transformOrigin: "50% 100%", transform: "rotate(120deg)" }}
-          />
-          <span className="aero-second-hand absolute bottom-[42px] left-1/2 -ml-[0.75px] w-[1.5px] rounded-full bg-gradient-to-t from-fuchsia-500 to-fuchsia-300" style={{ height: 33, transformOrigin: "50% 100%" }} />
-          <span className="absolute left-1/2 top-1/2 h-[7px] w-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/85 shadow-[0_0_0_2px_rgba(0,0,0,0.25)]" />
-        </div>
-        <div className="text-center">
-          <p className="text-[22px] font-semibold tabular-nums leading-none text-zinc-100">19:20</p>
-          <p className="mt-1 text-[11px] text-[#98989d]">Москва · вечер</p>
-        </div>
-      </div>
-    </Widget>
-  );
-}
-
-/* ── Виджет: погода ───────────────────────────────────────────────── */
-function WeatherWidget() {
-  return (
-    <Widget>
-      <div className="flex h-full flex-col justify-between py-1">
-        <div className="flex items-center justify-between">
-          <p className="text-[12px] font-medium text-[#c9c9ce]">Москва</p>
-          <Cloud className="h-[18px] w-[18px] text-[#98989d]" strokeWidth={1.7} />
-        </div>
-        <p className="text-[44px] font-light leading-none tracking-tight text-zinc-100">1°</p>
-        <div>
-          <p className="text-[12px] text-[#c9c9ce]">Облачно</p>
-          <p className="mt-0.5 text-[11px] text-[#6e6e73]">макс. 3° · мин. −1°</p>
-        </div>
-      </div>
-    </Widget>
-  );
-}
-
-/* ── Виджет: быстрый доступ ───────────────────────────────────────── */
+/* ── Быстрые ссылки стартовой (как quickLinks в приложении) ───────── */
 const QUICK_LINKS = [
-  { letter: "G", label: "Google", cls: "bg-violet-500/70 text-white" },
-  { letter: "Y", label: "YouTube", cls: "bg-red-500/70 text-white" },
-  { letter: "W", label: "Wikipedia", cls: "bg-zinc-500/50 text-zinc-100" },
-  { letter: "H", label: "Habr", cls: "bg-teal-500/70 text-white" },
-  { letter: "@", label: "Mail", cls: "bg-fuchsia-500/70 text-white" },
-  { letter: "D", label: "Docs", cls: "bg-amber-500/70 text-black/80" },
+  { letter: "Y", label: "YouTube", cls: "bg-red-500/80 text-white" },
+  { letter: "G", label: "Google", cls: "bg-white/85 text-zinc-800" },
+  { letter: "T", label: "Telegram", cls: "bg-sky-400/80 text-white" },
+  { letter: "G", label: "GitHub", cls: "bg-zinc-700/90 text-zinc-100" },
+  { letter: "W", label: "Wiki", cls: "bg-zinc-400/70 text-white" },
+  { letter: "S", label: "Steam", cls: "bg-slate-600/90 text-sky-200" },
+  { letter: "X", label: "Twitter", cls: "bg-zinc-900/90 text-zinc-100" },
+  { letter: "R", label: "Reddit", cls: "bg-orange-500/80 text-white" },
 ];
 
-function QuickAccessWidget() {
-  return (
-    <Widget>
-      <div className="flex h-full flex-col">
-        <p className="text-[12px] font-medium text-[#c9c9ce]">Быстрый доступ</p>
-        <div className="mt-3 grid flex-1 grid-cols-3 gap-2">
-          {QUICK_LINKS.map((tile) => (
-            <span
-              key={tile.label}
-              title={tile.label}
-              className={`flex items-center justify-center rounded-xl text-[12px] font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] ${tile.cls}`}
-            >
-              {tile.letter}
-            </span>
-          ))}
-        </div>
-      </div>
-    </Widget>
-  );
-}
-
-/* ── Виджет: календарь (ноябрь 2026, день 15 выделен) ─────────────── */
-const WEEKDAYS = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"];
-
-function CalendarWidget() {
-  const cells: (number | null)[] = [
-    ...Array.from({ length: 6 }, () => null),
-    ...Array.from({ length: 30 }, (_, i) => i + 1),
-  ];
-  while (cells.length % 7 !== 0) cells.push(null);
-
-  return (
-    <Widget>
-      <div className="flex h-full flex-col">
-        <p className="text-[12px] font-medium text-[#c9c9ce]">
-          Ноябрь <span className="text-[#6e6e73]">2026</span>
-        </p>
-        <div className="mt-2 grid grid-cols-7 gap-y-[3px] text-center">
-          {WEEKDAYS.map((day) => (
-            <span key={day} className="text-[9.5px] uppercase text-[#5c5c62]">
-              {day}
-            </span>
-          ))}
-          {cells.map((day, index) => (
-            <span key={index} className="flex h-[17px] items-center justify-center">
-              {day !== null ? (
-                <span
-                  className={`flex h-[16px] w-[16px] items-center justify-center rounded-full text-[10px] tabular-nums ${
-                    day === 15
-                      ? "bg-violet-500/90 font-semibold text-white shadow-[0_0_12px_rgba(139,92,246,0.5)]"
-                      : "text-[#a8a8ad]"
-                  }`}
-                >
-                  {day}
-                </span>
-              ) : null}
-            </span>
-          ))}
-        </div>
-      </div>
-    </Widget>
-  );
-}
-
-/* ── Стартовая страница ───────────────────────────────────────────── */
+/* ── Стартовая страница: приветствие + быстрые ссылки ─────────────── */
 function StartPage() {
   return (
-    <div className="mx-auto flex h-full w-full max-w-[1020px] flex-col items-center px-10 pb-8 pt-11">
+    <div className="mx-auto flex h-full w-full max-w-[760px] flex-col items-center px-10 pb-8 pt-14">
       <p className="text-[30px] font-semibold tracking-tight text-zinc-100">Добрый вечер</p>
       <p className="mt-1.5 text-[12.5px] text-[#98989d]">Суббота, 15 ноября</p>
 
-      <div className="mt-7 flex h-[52px] w-full max-w-[600px] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.08] px-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.09),0_24px_60px_-24px_rgba(0,0,0,0.6)] backdrop-blur-xl">
-        <Search className="h-4 w-4 shrink-0 text-[#98989d]" strokeWidth={1.8} />
-        <span className="truncate text-[13px] text-[#85858b]">Поиск в Google или введите адрес</span>
-        <span className="ml-auto shrink-0 rounded-md border border-white/10 bg-white/[0.08] px-2 py-0.5 text-[10.5px] font-medium text-[#98989d]">
-          Google
-        </span>
+      <div className="mt-9 flex flex-wrap justify-center gap-x-3 gap-y-2">
+        {QUICK_LINKS.map((tile) => (
+          <div
+            key={tile.label}
+            className="flex w-[88px] flex-col items-center gap-2 rounded-2xl px-1 py-2 transition-colors hover:bg-white/[0.08]"
+          >
+            <span
+              className={`flex h-[56px] w-[56px] items-center justify-center rounded-[16px] border border-white/[0.14] text-[19px] font-bold shadow-[0_10px_28px_-8px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.12)] ${tile.cls}`}
+            >
+              {tile.letter}
+            </span>
+            <span className="max-w-[82px] truncate text-[12px] font-medium text-zinc-200">
+              {tile.label}
+            </span>
+          </div>
+        ))}
+
+        {/* плитка «Добавить» */}
+        <div className="flex w-[88px] flex-col items-center gap-2 rounded-2xl px-1 py-2">
+          <span className="flex h-[56px] w-[56px] items-center justify-center rounded-[16px] border border-dashed border-white/25 text-[22px] font-light text-[#98989d]">
+            +
+          </span>
+          <span className="text-[12px] font-medium text-[#98989d]">Добавить</span>
+        </div>
       </div>
 
-      <div className="mt-8 grid w-full grid-cols-4 gap-4">
-        <ClockWidget />
-        <WeatherWidget />
-        <QuickAccessWidget />
-        <CalendarWidget />
+      {/* «Настроить» — стеклянная пилюля с шестерёнкой */}
+      <div className="mt-8 flex h-[34px] items-center gap-2 rounded-full border border-white/[0.14] bg-white/[0.08] px-4 text-[12.5px] font-semibold text-zinc-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_14px_40px_-18px_rgba(0,0,0,0.6)] backdrop-blur-xl">
+        <Settings className="h-[13px] w-[13px]" strokeWidth={1.8} />
+        Настроить
       </div>
 
       <p className="mt-auto pt-6 text-[10px] font-medium uppercase tracking-[0.22em] text-[#6e6e73]">
@@ -270,78 +168,146 @@ function StartPage() {
   );
 }
 
-/* ── Боковая панель (только showcase, выезжает от scroll-прогресса) ─ */
-const SIDEBAR_BOOKMARKS = [
-  { label: "GitHub — F1xYx/aero", dot: "#28c840" },
-  { label: "Документация Aero", dot: "#8b5cf6" },
-  { label: "Safari 27 · HIG", dot: "#d946ef" },
-  { label: "Aero: changelog", dot: "#2dd4bf" },
+/* ── Страница настроек (только showcase) — как в приложении 2.3.18 ── */
+const SET_NAV = [
+  { label: "Стартовая", active: false },
+  { label: "Оформление", active: true },
+  { label: "Поиск", active: false },
+  { label: "Общие", active: false },
+  { label: "Приватность", active: false },
+  { label: "О браузере", active: false },
 ];
 
-const SIDEBAR_LATER = [
-  { label: "Liquid Glass в вебе", dot: "#fbbf24" },
-  { label: "Chromium → webview", dot: "#5c5c62" },
+const ACCENTS = [
+  { cls: "bg-[#0a84ff]", sel: true },
+  { cls: "bg-[#ff9f0a]", sel: false },
+  { cls: "bg-[#32d74b]", sel: false },
+  { cls: "bg-[#ff375f]", sel: false },
+  { cls: "bg-[#98989d]", sel: false },
 ];
 
-function Sidebar({ x, opacity }: { x: MotionValue<number>; opacity: MotionValue<number> }) {
+function SettingsRow({ label, sub, children }: { label: string; sub?: string; children: React.ReactNode }) {
   return (
-    <motion.div
-      style={{ x, opacity }}
-      className="absolute bottom-0 left-0 top-0 z-10 w-[232px] border-r border-white/[0.08] bg-[#15151d]/[0.72] shadow-[24px_0_60px_-30px_rgba(0,0,0,0.6)] backdrop-blur-2xl"
-    >
-      <div className="flex h-full flex-col p-4">
-        <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#6e6e73]">
-          Боковая панель
-        </p>
-        <p className="mt-4 text-[11px] font-medium text-[#85858b]">Закладки</p>
-        <div className="mt-2 flex flex-col gap-1">
-          {SIDEBAR_BOOKMARKS.map((row) => (
-            <div key={row.label} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-[12px] text-[#c9c9ce]">
-              <span className="h-[7px] w-[7px] shrink-0 rounded-full" style={{ background: row.dot }} />
-              <span className="truncate">{row.label}</span>
-            </div>
-          ))}
-        </div>
-        <p className="mt-5 text-[11px] font-medium text-[#85858b]">Чтение позже</p>
-        <div className="mt-2 flex flex-col gap-1">
-          {SIDEBAR_LATER.map((row) => (
-            <div key={row.label} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-[12px] text-[#98989d]">
-              <span className="h-[7px] w-[7px] shrink-0 rounded-full" style={{ background: row.dot }} />
-              <span className="truncate">{row.label}</span>
-            </div>
-          ))}
-        </div>
-        <div className="mt-auto flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.05] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-teal-300/80" />
-          <p className="text-[10.5px] leading-snug text-[#98989d]">Обои просвечивают сквозь стекло</p>
-        </div>
+    <div className="flex items-center justify-between gap-6 border-b border-white/[0.05] px-4 py-3 last:border-0">
+      <div className="min-w-0">
+        <p className="text-[13px] font-semibold text-zinc-100">{label}</p>
+        {sub ? <p className="mt-0.5 text-[11.5px] text-[#85858b]">{sub}</p> : null}
       </div>
-    </motion.div>
+      <div className="flex shrink-0 items-center gap-2">{children}</div>
+    </div>
   );
 }
 
-/* ── Титульная строка ─────────────────────────────────────────────── */
-function Titlebar({ thirdTabX, thirdTabOpacity }: { thirdTabX: MotionValue<number>; thirdTabOpacity: MotionValue<number> }) {
+function Seg({ options, activeIndex = 0 }: { options: string[]; activeIndex?: number }) {
   return (
-    <div className="flex h-[46px] shrink-0 items-center gap-2.5 border-b border-white/[0.08] bg-white/[0.07] px-3.5 backdrop-blur-2xl">
-      <div className="flex shrink-0 items-center gap-2 pl-0.5">
-        <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
-        <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
-        <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+    <div className="flex rounded-[9px] bg-white/[0.08] p-[3px]">
+      {options.map((o, i) => (
+        <span
+          key={o}
+          className={`rounded-[7px] px-3 py-1 text-[11.5px] font-semibold ${
+            i === activeIndex ? "bg-white/[0.16] text-zinc-100" : "text-[#85858b]"
+          }`}
+        >
+          {o}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function Toggle({ on = false }: { on?: boolean }) {
+  return (
+    <span
+      className={`relative inline-flex h-[24px] w-[42px] rounded-full transition-colors ${
+        on ? "bg-[#30d158]" : "bg-white/[0.14]"
+      }`}
+    >
+      <span
+        className={`absolute top-[2px] h-[20px] w-[20px] rounded-full bg-white shadow ${
+          on ? "left-[20px]" : "left-[2px]"
+        }`}
+      />
+    </span>
+  );
+}
+
+function SettingsPage() {
+  return (
+    <div className="flex h-full">
+      {/* сайдбар */}
+      <div className="w-[216px] shrink-0 border-r border-white/[0.07] bg-white/[0.04] px-3 py-5">
+        <p className="px-3 text-[15px] font-bold text-zinc-100">Настройки</p>
+        <div className="mt-4 flex flex-col gap-1">
+          {SET_NAV.map((item) => (
+            <div
+              key={item.label}
+              className={`flex items-center gap-2.5 rounded-[9px] px-3 py-2 text-[12.5px] ${
+                item.active
+                  ? "bg-white/[0.14] font-semibold text-zinc-100"
+                  : "text-[#a8a8ad]"
+              }`}
+            >
+              <span className="h-[13px] w-[13px] rounded-[4px] border border-white/25" />
+              {item.label}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="ml-2.5 flex min-w-0 items-center gap-1.5">
+      {/* контент: Оформление */}
+      <div className="min-w-0 flex-1 px-10 py-6">
+        <p className="text-[21px] font-bold tracking-tight text-zinc-100">Оформление</p>
+        <p className="mt-1 text-[12.5px] text-[#85858b]">Тема, акцент и эффекты</p>
+
+        <div className="mt-6 rounded-[14px] border border-white/[0.08] bg-white/[0.05] backdrop-blur-xl">
+          <SettingsRow label="Режим оформления" sub="«Авто» следует настройкам системы">
+            <Seg options={["Тёмная", "Светлая", "Авто"]} activeIndex={0} />
+          </SettingsRow>
+          <SettingsRow label="Акцентный цвет">
+            <div className="flex items-center gap-2">
+              {ACCENTS.map((a, i) => (
+                <span
+                  key={i}
+                  className={`h-[22px] w-[22px] rounded-full ${a.cls} ${
+                    a.sel ? "ring-2 ring-white/60 ring-offset-2 ring-offset-[#1d1b2e]/60" : ""
+                  }`}
+                />
+              ))}
+            </div>
+          </SettingsRow>
+        </div>
+
+        <div className="mt-5 rounded-[14px] border border-white/[0.08] bg-white/[0.05] backdrop-blur-xl">
+          <SettingsRow label="Интенсивность стекла" sub="Сила размытия liquid glass">
+            <Seg options={["Низкая", "Средняя", "Высокая", "Выкл"]} activeIndex={2} />
+          </SettingsRow>
+          <SettingsRow label="Анимации" sub="Плавные переходы вкладок">
+            <Toggle on />
+          </SettingsRow>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Титульная строка: вкладки + «новая вкладка» вплотную, окна справа ── */
+function Titlebar({ thirdTabX, thirdTabOpacity }: { thirdTabX: MotionValue<number>; thirdTabOpacity: MotionValue<number> }) {
+  return (
+    <div className="flex h-[46px] shrink-0 items-center gap-1.5 border-b border-white/[0.08] bg-white/[0.07] px-3 backdrop-blur-2xl">
+      <div className="ml-1 flex min-w-0 items-center gap-1.5">
         <Tab active label="Новое окно" dot="linear-gradient(135deg, #c084fc, #8b5cf6)" />
         <Tab label="Документация Aero" dot="#5c5c62" />
         <motion.div style={{ x: thirdTabX, opacity: thirdTabOpacity }} className="min-w-0">
           <Tab label="GitHub — F1xYx/aero" dot="#5c5c62" />
         </motion.div>
-        <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[9px] text-[#85858b]">
+        <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] text-[#85858b] transition-colors hover:bg-white/[0.08]">
           <Plus className="h-[13px] w-[13px]" strokeWidth={2} />
         </span>
       </div>
 
-      <div className="ml-auto -mr-2.5 flex shrink-0 self-stretch items-stretch">
+      <div className="flex-1" />
+
+      <div className="-mr-2 flex shrink-0 self-stretch items-stretch">
         <WinButton>
           <Minus className="h-[11px] w-[11px]" strokeWidth={1.8} />
         </WinButton>
@@ -356,11 +322,11 @@ function Titlebar({ thirdTabX, thirdTabOpacity }: { thirdTabX: MotionValue<numbe
   );
 }
 
-/* ── Панель инструментов ──────────────────────────────────────────── */
+/* ── Панель инструментов: навигация + адрес по центру + обзор/настройки ── */
 function Toolbar({ variant }: { variant: "hero" | "showcase" }) {
   return (
-    <div className="flex h-[46px] shrink-0 items-center gap-2 border-b border-white/[0.08] bg-white/[0.06] px-3 backdrop-blur-2xl">
-      <div className="flex shrink-0 items-center gap-1.5">
+    <div className="flex h-[46px] shrink-0 items-center gap-1.5 border-b border-white/[0.08] bg-white/[0.06] px-3 backdrop-blur-2xl">
+      <div className="flex shrink-0 items-center gap-1">
         <ToolButton>
           <ChevronLeft className="h-[14px] w-[14px]" strokeWidth={2} />
         </ToolButton>
@@ -373,16 +339,16 @@ function Toolbar({ variant }: { variant: "hero" | "showcase" }) {
       </div>
 
       <div className="flex min-w-0 flex-1 justify-center px-2">
-        <div className="flex h-[32px] w-full max-w-[430px] items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.1] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
+        <div className="flex h-[32px] w-full max-w-[430px] items-center justify-center gap-2 rounded-[11px] border border-white/10 bg-white/[0.1] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
           <Lock className="h-[11px] w-[11px] shrink-0 text-[#98989d]" strokeWidth={2} />
           <span className="truncate text-[12.5px] text-[#c9c9ce]">
-            {variant === "showcase" ? "aero.dev" : "aero://newtab"}
+            {variant === "showcase" ? "aero://settings" : "aero://newtab"}
           </span>
           <Search className="h-[11px] w-[11px] shrink-0 text-[#5c5c62]" strokeWidth={2} />
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-1.5">
+      <div className="flex shrink-0 items-center gap-1">
         <ToolButton>
           <LayoutGrid className="h-[13px] w-[13px]" strokeWidth={1.8} />
         </ToolButton>
@@ -412,8 +378,6 @@ export function GlassWindow({ variant = "hero", progress, className = "" }: Glas
 
   const thirdTabX = useTransform(p, [0.26, 0.4], [-46, 0]);
   const thirdTabOpacity = useTransform(p, [0.26, 0.4], [0, 1]);
-  const sidebarX = useTransform(p, [0.4, 0.55], [-240, 0]);
-  const sidebarOpacity = useTransform(p, [0.4, 0.5], [0, 1]);
 
   return (
     <div
@@ -435,13 +399,12 @@ export function GlassWindow({ variant = "hero", progress, className = "" }: Glas
           className="relative flex h-full w-full flex-col overflow-hidden rounded-[18px] border border-white/[0.12] shadow-[0_70px_160px_-40px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.12)]"
           style={{ background: AURORA_BG }}
         >
-          {/* мягкое «жидкое» свечение поверх обоих — живое стекло */}
+          {/* мягкое «жидкое» свечение поверх обоев — живое стекло */}
           <div className="pointer-events-none absolute inset-0 z-20 bg-[radial-gradient(90%_60%_at_70%_-10%,rgba(255,255,255,0.07),transparent_60%)]" />
           <Titlebar thirdTabX={thirdTabX} thirdTabOpacity={thirdTabOpacity} />
           <Toolbar variant={variant} />
           <div className="relative flex-1 overflow-hidden">
-            <StartPage />
-            {variant === "showcase" ? <Sidebar x={sidebarX} opacity={sidebarOpacity} /> : null}
+            {variant === "showcase" ? <SettingsPage /> : <StartPage />}
           </div>
         </div>
       </div>

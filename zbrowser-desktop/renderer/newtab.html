@@ -1,62 +1,49 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="light">
+<html lang="ru" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Новая вкладка</title>
   <style>
     /* ============================================================
-       Aera 2.3 — флагманская начальная страница с конструктором виджетов.
-       Часы (4 циферблата), быстрые ссылки с фавиконками, защита,
-       заметки, закладки, часто посещаемые — добавляйте, двигайте,
-       редактируйте и удаляйте виджеты.
+       Aero — простая стартовая страница: приветствие + быстрые ссылки.
+       Никаких виджетов и накладных панелей — как в настоящем браузере.
 
        Работает внутри <webview> (file://, десктоп) и внутри <iframe>
        (/aera/newtab.html, веб-песочница). Все пути — относительные.
 
        Связь с хостом (app.js):
          → навигация:  parent.postMessage({__zaeranav:true, url, tab})
-           (в десктопе newtab — верхнеуровневый документ webview,
-            поэтому просто window.location.href)
-         → сигналы:    localStorage 'znt_signal' (событие storage)
-         ← хост шлёт:  {__zaeratheme} {__zaeraengine} {__zaerawallpaper}
-                       {__zaeraanim} {__zaeraaccent} {__zaerablocked}
-       Без backdrop-filter: только rgba и 1px рамки — стабильно 60–144 FPS.
+         ← хост шлёт:  {__zaeratheme} {__zaerawallpaper}
+       Настройки читаются из общего key 'aera.settings.v2' (Store).
        ============================================================ */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --zb-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
       --zb-smooth: cubic-bezier(0.32, 0.72, 0, 1);
-      --accent: #007aff;
+      --zb-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --accent: #0a84ff;
     }
-    html[data-theme="dark"] { --accent: #409cff; }
 
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --text: #f5f5f7;
+      --text-2: rgba(245, 245, 247, 0.72);
+      --tile-bg: rgba(28, 28, 34, 0.55);
+      --tile-border: rgba(255, 255, 255, 0.14);
+      --tile-hover: rgba(255, 255, 255, 0.55);
+      --glass: rgba(255, 255, 255, 0.08);
+      --shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+    }
     html[data-theme="light"] {
       color-scheme: light;
       --text: #1d1d1f;
-      --text-2: rgba(29, 29, 31, 0.6);
-      --text-3: rgba(29, 29, 31, 0.38);
-      --glass: rgba(255, 255, 255, 0.66);
-      --glass-strong: rgba(255, 255, 255, 0.9);
-      --tile-bg: rgba(255, 255, 255, 0.92);
-      --ring: rgba(255, 255, 255, 0.7);
-      --hairline: rgba(0, 0, 0, 0.08);
-      --shadow-1: 0 6px 20px rgba(0, 0, 0, 0.08);
-      --input-bg: rgba(255, 255, 255, 0.9);
-    }
-    html[data-theme="dark"] {
-      color-scheme: dark;
-      --text: #f2f2f5;
-      --text-2: rgba(242, 242, 245, 0.64);
-      --text-3: rgba(242, 242, 245, 0.4);
-      --glass: rgba(28, 28, 34, 0.62);
-      --glass-strong: rgba(24, 24, 30, 0.92);
-      --tile-bg: rgba(52, 52, 60, 0.9);
-      --ring: rgba(255, 255, 255, 0.14);
-      --hairline: rgba(255, 255, 255, 0.1);
-      --shadow-1: 0 6px 20px rgba(0, 0, 0, 0.32);
-      --input-bg: rgba(20, 20, 26, 0.82);
+      --text-2: rgba(29, 29, 31, 0.62);
+      --tile-bg: rgba(255, 255, 255, 0.72);
+      --tile-border: rgba(0, 0, 0, 0.07);
+      --tile-hover: rgba(0, 0, 0, 0.09);
+      --glass: rgba(0, 0, 0, 0.045);
+      --shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
     }
 
     html, body { height: 100%; }
@@ -65,963 +52,214 @@
       color: var(--text);
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
-      background: #101014;
+      background: #16161f;
     }
 
-    /* ---------------- Обои (без размытий) ---------------- */
-    body.wp-sunset  { background: linear-gradient(135deg, #ffb37b 0%, #ff7a59 34%, #b0439d 68%, #3f2b96 100%); }
-    body.wp-sakura  { background: linear-gradient(135deg, #ffd9e8 0%, #ff9dc0 42%, #b56cc8 100%); }
-    body.wp-mint    { background: linear-gradient(135deg, #d6f5e8 0%, #7fdeb8 45%, #23a97a 100%); }
-    body.wp-midnight{ background: linear-gradient(160deg, #1a1c2e 0%, #10121d 60%, #0a0b12 100%); }
-    body.wp-golden  { background: linear-gradient(135deg, #f7c548 0%, #ef8d3c 40%, #c94b6d 74%, #6d327a 100%); }
-    body.wp-ocean   { background: linear-gradient(135deg, #8fd3f4 0%, #4aa7d8 48%, #1b5f9e 100%); }
-    body.wp-lavender{ background: linear-gradient(135deg, #e6d9ff 0%, #b79bff 45%, #6f5bd6 100%); }
-    body.wp-custom  { background: #101014; }
+    /* ---------------- Обои ---------------- */
+    body.wp-aurora   { background: radial-gradient(120% 90% at 20% 10%, #2b1055 0%, transparent 55%), radial-gradient(110% 100% at 85% 20%, #0f3460 0%, transparent 60%), radial-gradient(130% 110% at 60% 100%, #7597de33 0%, transparent 55%), linear-gradient(150deg, #16161f 0%, #1d1b2e 45%, #171722 100%); }
+    body.wp-sunset   { background: radial-gradient(110% 80% at 15% 15%, #ff9a5622 0%, transparent 55%), radial-gradient(120% 90% at 90% 30%, #ff5e6222 0%, transparent 60%), linear-gradient(160deg, #20161a 0%, #2a1a20 50%, #1a1216 100%); }
+    body.wp-forest   { background: radial-gradient(120% 90% at 25% 15%, #1d3a2f33 0%, transparent 55%), radial-gradient(110% 100% at 80% 80%, #2a5a3f22 0%, transparent 60%), linear-gradient(155deg, #131a16 0%, #1a2620 50%, #121815 100%); }
+    body.wp-ocean    { background: radial-gradient(120% 90% at 20% 20%, #0a4d6e33 0%, transparent 55%), radial-gradient(110% 100% at 85% 75%, #096b8f22 0%, transparent 60%), linear-gradient(150deg, #0e1418 0%, #122430 55%, #0e151a 100%); }
+    body.wp-graphite { background: radial-gradient(130% 100% at 30% 10%, #ffffff0d 0%, transparent 50%), linear-gradient(160deg, #1a1a1e 0%, #202026 55%, #17171b 100%); }
+    body.wp-rose     { background: radial-gradient(120% 90% at 25% 12%, #8f2d5630 0%, transparent 55%), radial-gradient(110% 100% at 80% 85%, #b0306022 0%, transparent 60%), linear-gradient(150deg, #1a1016 0%, #241521 50%, #161014 100%); }
+    body.wp-custom   { background: #16161f; }
     body.wp-custom::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: 0;
+      content: ""; position: fixed; inset: 0; z-index: 0;
       background-image: var(--wp-img, none);
-      background-size: cover;
-      background-position: center;
+      background-size: cover; background-position: center;
     }
-    html[data-theme="dark"] body.wp-custom::before { background: rgba(0, 0, 0, 0.34); }
-    html[data-theme="dark"] body.wp-sunset {
-      background: linear-gradient(135deg, #8a4d2c 0%, #a03a2e 34%, #6e2a63 68%, #241a5e 100%);
+    body::after {
+      content: ""; position: fixed; inset: 0; z-index: 0;
+      background: rgba(0, 0, 0, var(--wp-dim, 0.2)); pointer-events: none;
     }
-    html[data-theme="dark"] body.wp-sakura {
-      background: linear-gradient(135deg, #7c4a5e 0%, #8f4470 42%, #4c2c66 100%);
-    }
-    html[data-theme="dark"] body.wp-mint {
-      background: linear-gradient(135deg, #2b5e4b 0%, #1e6b52 45%, #0e4632 100%);
-    }
-    html[data-theme="dark"] body.wp-golden {
-      background: linear-gradient(135deg, #7e5a1c 0%, #7c3f1f 40%, #6d2740 74%, #3a1c49 100%);
-    }
-    html[data-theme="dark"] body.wp-ocean {
-      background: linear-gradient(135deg, #1d4a66 0%, #174a70 48%, #0d2c4c 100%);
-    }
-    html[data-theme="dark"] body.wp-lavender {
-      background: linear-gradient(135deg, #4b3a72 0%, #4c3482 45%, #2e2354 100%);
-    }
+    html[data-theme="light"] body.wp-aurora   { background: radial-gradient(120% 90% at 20% 10%, #ffe3c2 0%, transparent 55%), radial-gradient(110% 100% at 85% 20%, #ffd9e8 0%, transparent 60%), linear-gradient(150deg, #fdf6ee 0%, #f4eef8 45%, #eef1f7 100%); }
+    html[data-theme="light"] body.wp-sunset   { background: radial-gradient(110% 80% at 15% 15%, #ffd9b8 0%, transparent 55%), radial-gradient(120% 90% at 90% 30%, #ffc4c9 0%, transparent 60%), linear-gradient(160deg, #fff3ec 0%, #ffe9ec 50%, #fdeef0 100%); }
+    html[data-theme="light"] body.wp-forest   { background: radial-gradient(120% 90% at 25% 15%, #d9f0dd 0%, transparent 55%), linear-gradient(155deg, #f2f8f3 0%, #eaf4ec 50%, #f0f7f1 100%); }
+    html[data-theme="light"] body.wp-ocean    { background: radial-gradient(120% 90% at 20% 20%, #d3ecf7 0%, transparent 55%), linear-gradient(150deg, #eff7fb 0%, #e6f2f8 55%, #eef5f9 100%); }
+    html[data-theme="light"] body.wp-graphite { background: radial-gradient(130% 100% at 30% 10%, #ffffff 0%, transparent 50%), linear-gradient(160deg, #f7f7f9 0%, #eeeef1 55%, #f4f4f6 100%); }
+    html[data-theme="light"] body.wp-rose     { background: radial-gradient(120% 90% at 25% 12%, #fbdde9 0%, transparent 55%), linear-gradient(150deg, #fdf0f4 0%, #f9e6ee 50%, #fdeff2 100%); }
+    html[data-theme="light"] body::after { background: rgba(0,0,0,0) !important; }
 
-    html[data-accent="sunset"]   { --accent: #f07422; }
-    html[data-accent="sakura"]   { --accent: #ef4f8e; }
-    html[data-accent="mint"]     { --accent: #14b87c; }
-    html[data-accent="golden"]   { --accent: #d99a1f; }
-    html[data-accent="lavender"] { --accent: #8b5cf6; }
-    html[data-accent="crimson"]  { --accent: #e0352b; }
-    html[data-accent="graphite"] { --accent: #6e6e73; }
-    html[data-theme="dark"][data-accent="sunset"]   { --accent: #ff9450; }
-    html[data-theme="dark"][data-accent="sakura"]   { --accent: #ff6fa0; }
-    html[data-theme="dark"][data-accent="mint"]     { --accent: #3ad292; }
-    html[data-theme="dark"][data-accent="golden"]   { --accent: #f2b03d; }
-    html[data-theme="dark"][data-accent="lavender"] { --accent: #a985ff; }
-    html[data-theme="dark"][data-accent="crimson"]  { --accent: #ff6961; }
-    html[data-theme="dark"][data-accent="graphite"] { --accent: #9a9aa2; }
+    /* ---------------- Угловая кнопка ---------------- */
+    .corner-tools { position: fixed; top: 14px; right: 16px; z-index: 5; }
+    .corner-btn {
+      appearance: none; border: 0; cursor: pointer;
+      width: 34px; height: 34px; display: grid; place-items: center;
+      border-radius: 10px; color: var(--text-2);
+      background: var(--tile-bg); border: 1px solid var(--tile-border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(30px) saturate(170%);
+      -webkit-backdrop-filter: blur(30px) saturate(170%);
+      transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    }
+    .corner-btn:hover { color: var(--text); background: var(--tile-hover); }
+    .corner-btn:active { transform: scale(0.92); }
 
     /* ---------------- Центральная колонка ---------------- */
     .wrap {
-      position: relative;
-      z-index: 1;
+      position: relative; z-index: 1;
       width: min(860px, 96vw);
       margin: 0 auto;
       padding: 34px 22px 60px;
-      min-height: 100vh;
-      min-height: 100svh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      justify-content: safe center;
+      min-height: 100vh; min-height: 100svh;
+      display: flex; flex-direction: column;
+      justify-content: center; justify-content: safe center;
+      align-items: center;
     }
     .wrap > * { animation: zb-fade-up 0.55s var(--zb-smooth) both; }
-    .hero    { animation-delay: 0ms; }
-    .widgets { animation-delay: 40ms; }
-    .dl-card { animation-delay: 280ms; }
 
     @keyframes zb-fade-up {
       from { opacity: 0; transform: translateY(14px); }
       to   { opacity: 1; transform: none; }
     }
 
-    /* Логотип-сфера + словесная марка */
-    .hero {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 18px;
-    }
-    .hero.hidden { display: none; }
-    .logo {
-      width: 38px;
-      height: 38px;
-      display: block;
-      border-radius: 50%;
-      animation: zb-float 6s ease-in-out 0.8s infinite;
-      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.16));
-    }
-    @keyframes zb-float {
-      0%, 100% { transform: translateY(0); }
-      50%      { transform: translateY(-6px); }
-    }
-    .hero h1 {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.24em;
-      text-indent: 0.24em;
-      color: var(--text-2);
-    }
+    .greeting { text-align: center; animation-delay: 0ms; }
+    .greeting h1 { font-size: 27px; font-weight: 700; letter-spacing: 0.2px; }
+    .greeting p { margin-top: 6px; font-size: 13.5px; color: var(--text-2); }
 
-    /* ---------------- Сетка виджетов ---------------- */
-    .widgets {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
+    /* ---------------- Быстрые ссылки ---------------- */
+    .ql-grid {
+      margin-top: 36px;
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 16px 12px;
+      animation-delay: 60ms;
     }
-    .widget[data-size="wide"] { grid-column: 1 / -1; }
-    @media (max-width: 680px) {
-      .widgets { grid-template-columns: 1fr; }
-    }
-
-    /* виджеты без карточек-«блоков» и обводки — содержимое прямо на обоях */
-    .widget {
+    .ql-tile {
       position: relative;
-      background: transparent;
-      border-radius: 18px;
-      box-shadow: none;
-      padding: 12px 10px;
-      transition: background 0.22s ease;
-      min-width: 0;
+      display: flex; flex-direction: column; align-items: center; gap: 9px;
+      width: 88px; padding: 10px 4px 8px;
+      background: transparent; border: none; cursor: pointer;
+      font-family: inherit; color: var(--text);
+      border-radius: 16px;
+      transition: background 0.18s ease, transform 0.2s var(--zb-spring);
     }
-
-    /* заголовок виджета виден только в режиме правки — как у флагманов */
-    .wg-head {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    body.nt-edit .wg-head { display: flex; animation: wg-fade 0.3s ease; }
-    @keyframes wg-fade { from { opacity: 0; } to { opacity: 1; } }
-    .wg-head h2 {
-      font-size: 12.5px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      color: var(--text-2);
-    }
-    .wg-tools {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      opacity: 0;
-      transform: translateY(-4px);
-      pointer-events: none;
-      transition: opacity 0.18s ease, transform 0.18s ease;
-    }
-    body.nt-edit .widget:hover .wg-tools,
-    body.nt-edit .widget:focus-within .wg-tools { opacity: 1; transform: none; pointer-events: auto; }
-    /* в режиме правки никаких рамок и серых подложек — только курсор и инструменты */
-    body.nt-edit .widget { cursor: grab; }
-    body.nt-edit .widget:active { cursor: grabbing; }
-    .widget.drag-ghost { opacity: 0.45; }
-    .widget.drop-before { box-shadow: -3px 0 0 0 var(--accent); }
-    .widget.drop-after  { box-shadow: 3px 0 0 0 var(--accent); }
-
-    .wg-btn {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      width: 26px;
-      height: 26px;
-      display: grid;
-      place-items: center;
-      border-radius: 8px;
-      background: var(--glass-strong);
-      box-shadow: none;
-      color: var(--text-2);
-      font-size: 12px;
-      font-weight: 700;
-      font-family: inherit;
-      transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
-    }
-    .wg-btn:hover { background: var(--accent); color: #fff; }
-    .wg-btn:active { transform: scale(0.92); }
-    .wg-btn.danger:hover { background: #ff453a; }
-
-    /* ---------------- Часы ---------------- */
-    .clock { text-align: center; }
-    .clock .time {
-      font-size: 46px;
-      font-weight: 200;
-      letter-spacing: 0.02em;
-      line-height: 1.05;
-      font-variant-numeric: tabular-nums;
-      color: var(--text);
-    }
-    .clock .date {
-      margin-top: 6px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-2);
-    }
-    /* циферблат «минимал» */
-    .clock.face-minimal .time { font-size: 40px; font-weight: 100; letter-spacing: 0.06em; }
-    .clock.face-minimal .date { margin-top: 2px; font-size: 11px; color: var(--text-3); }
-    /* циферблат «электрон» — сегменты и секунды */
-    .clock.face-blocks .blk {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 4px;
-    }
-    .clock.face-blocks .seg {
-      display: inline-grid;
-      place-items: center;
-      min-width: 40px;
-      height: 52px;
-      padding: 0 7px;
-      border-radius: 10px;
-      background: var(--tile-bg);
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-      font-size: 30px;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      color: var(--text);
-    }
-    .clock.face-blocks .colon {
-      font-size: 30px;
-      font-weight: 700;
-      color: var(--text-2);
-      animation: blk-blink 1s steps(1) infinite;
-    }
-    @keyframes blk-blink { 50% { opacity: 0.25; } }
-    .clock.face-blocks .secs {
-      margin-left: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      color: var(--text-3);
-    }
-    /* циферблат «аналоговый» */
-    .clock.face-analog svg { width: 128px; height: 128px; display: block; margin: 0 auto; }
-    .clock.face-analog .an-ring {
-      fill: var(--tile-bg);
-      stroke: var(--ring);
-      stroke-width: 1.5;
-    }
-    .clock.face-analog .an-mark {
-      stroke: var(--text-3);
-      stroke-width: 1.6;
-      stroke-linecap: round;
-    }
-    .clock.face-analog .an-hour { stroke: var(--text); stroke-width: 4.4; stroke-linecap: round; }
-    .clock.face-analog .an-min  { stroke: var(--text); stroke-width: 3; stroke-linecap: round; }
-    .clock.face-analog .an-sec  { stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; }
-    .clock.face-analog .an-pin  { fill: var(--accent); }
-    .clock.face-analog line, .clock.face-analog circle.an-pin {
-      transform-box: view-box;
-      transform-origin: 50% 50%;
-    }
-    .clock .date-chip {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 4px 12px;
-      border-radius: 999px;
-      background: var(--tile-bg);
-      box-shadow: none;
-      font-size: 11.5px;
-      font-weight: 600;
-      color: var(--text-2);
-    }
-
-    /* ---------------- Поиск ---------------- */
-    .searchbox-w {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      max-width: 580px;
-      margin: 0 auto;
-      padding: 12px 18px;
-      border-radius: 999px;
-      background: var(--input-bg);
-      box-shadow: var(--shadow-1);
-      transition: box-shadow 0.2s ease;
-    }
-    .searchbox-w:focus-within { box-shadow: 0 0 0 2px var(--accent), var(--shadow-1); }
-    .searchbox-w svg { flex: 0 0 auto; color: var(--text-3); }
-    .searchbox-w input {
-      flex: 1 1 auto;
-      min-width: 0;
-      border: 0;
-      outline: 0;
-      background: transparent;
-      color: var(--text);
-      font: inherit;
-      font-size: 14.5px;
-    }
-    .searchbox-w input::placeholder { color: var(--text-3); }
-    .eng-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 10px; }
-    .eng-chip2 {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      font: inherit;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 11px;
-      border-radius: 999px;
-      background: var(--tile-bg);
-      box-shadow: none;
-      color: var(--text-2);
-      transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
-    }
-    .eng-chip2:hover { color: var(--text); transform: translateY(-1px); }
-    .eng-chip2.active { background: var(--accent); color: #fff; }
-    .eng-chip2:active { transform: scale(0.94); }
-
-    /* ---------------- Плитки ссылок (диск / закладки / частые) ----------------
-       Плитки выстраиваются по центру — как у флагманов. */
-    .tiles {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 14px 10px;
-    }
-
-    .tile-btn {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 7px;
-      width: 76px;
-      padding: 8px 4px;
-      border: 0;
-      border-radius: 12px;
-      background: transparent;
-      color: inherit;
-      font-family: inherit;
-      cursor: pointer;
-      transition: transform 0.2s var(--zb-spring);
-    }
-    .tile-btn:hover { transform: translateY(-2px); }
-    .tile-btn:active { transform: scale(0.96); }
-    .tile-c {
-      width: 56px;
-      height: 56px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: var(--tile-bg);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
+    .ql-tile:hover { background: var(--glass); transform: translateY(-2px); }
+    .ql-tile:active { transform: scale(0.96); }
+    .ql-circle {
+      width: 56px; height: 56px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--tile-bg); border: 1px solid var(--tile-border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(44px) saturate(180%);
+      -webkit-backdrop-filter: blur(44px) saturate(180%);
+      font-size: 21px; font-weight: 700;
+      overflow: hidden;
       transition: transform 0.22s var(--zb-spring), box-shadow 0.22s ease;
     }
-    .tile-btn:hover .tile-c {
-      transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+    .ql-tile:hover .ql-circle { transform: translateY(-1px) scale(1.05); }
+    .ql-circle img { width: 30px; height: 30px; border-radius: 7px; }
+    .ql-label { font-size: 12px; font-weight: 500; max-width: 82px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ql-x {
+      position: absolute; top: 4px; right: 4px;
+      width: 20px; height: 20px; border-radius: 50%;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, 0.55); color: #fff;
+      border: none; cursor: pointer;
+      backdrop-filter: blur(8px);
     }
-    .tile-c img { width: 30px; height: 30px; border-radius: 7px; }
-    .tile-label {
-      max-width: 100%;
-      font-size: 11px;
-      color: var(--text-2);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    /* режим «без названий» — только иконки */
-    body.no-tile-labels .tile-label { display: none; }
-    body.no-tile-labels .tiles { gap: 12px 10px; }
-    /* название скрыто у отдельной плитки — место сохраняется, ряд остаётся ровным */
-    .tile-label.void { visibility: hidden; }
-    /* кнопка «+» добавить ссылку */
-    .tile-add .tile-c { background: rgba(127, 127, 127, 0.2); box-shadow: none; color: var(--text-3); font-size: 22px; font-weight: 500; }
-    .tile-add:hover .tile-c { background: rgba(127, 127, 127, 0.3); color: var(--accent); }
-    /* оверлеи правки плитки (в режиме правки) */
-    .tile-x {
-      position: absolute;
-      top: 2px;
-      right: 6px;
-      width: 18px;
-      height: 18px;
-      display: none;
-      place-items: center;
-      border: 0;
-      border-radius: 50%;
-      background: #ff453a;
-      color: #fff;
-      font-size: 10px;
-      line-height: 1;
-      cursor: pointer;
-    }
-    body.nt-edit .tile-x { display: grid; }
-    /* переименование плитки — двойной клик или правый клик, без лишних кнопок */
-    .tile-btn.drag-ghost { opacity: 0.4; }
-    .empty-hint {
-      padding: 12px 16px;
-      border-radius: 12px;
-      background: transparent;
-      box-shadow: none;
-      font-size: 12.5px;
-      line-height: 1.45;
-      color: var(--text-2);
+    .ql-tile:hover .ql-x { display: flex; }
+    .ql-x:hover { background: #ff453a; }
+    .ql-x svg { width: 9px; height: 9px; }
+    .ql-add .ql-circle {
+      border-style: dashed; border-color: var(--text-2);
+      background: transparent; color: var(--text-2);
+      font-weight: 400; font-size: 24px;
     }
 
-    /* ---------------- Защита ---------------- */
-    .protect-head { display: flex; align-items: center; gap: 10px; }
-    .protect-head svg { flex: 0 0 auto; color: #34c759; }
-    .protect-head b { display: block; font-size: 13px; font-weight: 700; }
-    .protect-head span { display: block; font-size: 11px; color: var(--text-3); margin-top: 2px; }
-    .protect-rows { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
-    /* каждая строка защиты — большой прозрачный переключатель: без серых блоков и обводок */
-    .prot-row {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      font: inherit;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 8px 12px;
-      border-radius: 10px;
-      background: transparent;
-      box-shadow: none;
-      font-size: 12px;
-      text-align: left;
-      color: var(--text);
-      transition: background 0.15s ease;
-    }
-    .prot-row:hover { background: var(--glass); }
-    .prot-row:active { transform: scale(0.99); }
-    .prot-row .pr-name { font-weight: 600; color: var(--text-2); transition: color 0.15s ease; }
-    .prot-row:hover .pr-name { color: var(--text); }
-    .prot-badge {
-      flex: 0 0 auto;
-      font-size: 10.5px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 999px;
-      background: rgba(52, 199, 89, 0.16);
-      color: #28a745;
-    }
-    .prot-badge.off { background: rgba(255, 159, 10, 0.16); color: #c93400; }
-    .prot-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    .p-btn {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      font: inherit;
-      font-size: 11.5px;
-      font-weight: 700;
-      padding: 7px 13px;
-      border-radius: 10px;
-      background: var(--accent);
-      color: #fff;
-      transition: transform 0.16s var(--zb-spring), filter 0.16s ease;
-    }
-    .p-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
-    .p-btn:active { transform: scale(0.95); }
-    .p-btn.ghost { background: var(--glass-strong); color: var(--text); box-shadow: none; }
-
-    /* ---------------- Заметка ---------------- */
-    .note-area {
-      width: 100%;
-      min-height: 92px;
-      resize: vertical;
-      border: 0;
-      outline: 0;
-      border-radius: 12px;
-      background: var(--input-bg);
-      box-shadow: none;
-      padding: 10px 12px;
-      font: inherit;
-      font-size: 12.5px;
-      line-height: 1.5;
-      color: var(--text);
-    }
-    .note-area:focus { box-shadow: 0 0 0 2px var(--accent); }
-    .note-hint { margin-top: 6px; font-size: 10.5px; color: var(--text-3); }
-
-    /* ---------------- Ссылка-карточка ---------------- */
-    .link-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      border-radius: 14px;
-      background: var(--tile-bg);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      cursor: pointer;
-      transition: transform 0.2s var(--zb-spring);
-    }
-    .link-card:hover { transform: translateY(-2px); }
-    .link-card .tile-c { width: 42px; height: 42px; font-size: 14px; }
-    .link-card img { width: 24px; height: 24px; border-radius: 6px; }
-    .link-card .lc-t { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .link-card .lc-u { font-size: 11px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
-
-    /* ---------------- Кнопки в углу ---------------- */
-    .corner-tools {
-      position: fixed;
-      top: 18px;
-      right: 18px;
-      z-index: 4;
-      display: flex;
-      gap: 8px;
-    }
-    .corner-btn {
-      width: 38px;
-      height: 38px;
-      display: grid;
-      place-items: center;
-      border: 0;
-      border-radius: 12px;
-      background: var(--glass);
-      box-shadow: var(--shadow-1);
-      color: var(--text-2);
-      cursor: pointer;
-      animation: zb-fade-up 0.55s var(--zb-smooth) 0.28s both;
-      transition: transform 0.28s var(--zb-spring), color 0.18s ease, box-shadow 0.18s ease;
-    }
-    .corner-btn:hover { color: var(--text); background: rgba(127, 127, 127, 0.16); }
-    .corner-btn:active { transform: scale(0.92); }
-    .corner-btn.active { color: #fff; background: var(--accent); }
-
-    /* ---------------- Плашка режима правки ---------------- */
-    .edit-hint {
-      position: fixed;
-      left: 50%;
-      bottom: 20px;
-      z-index: 5;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 12px 10px 18px;
-      border-radius: 999px;
-      background: var(--glass-strong);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-2);
-      white-space: nowrap;
-      opacity: 0;
-      transform: translateX(-50%) translateY(12px);
-      pointer-events: none;
-      transition: opacity 0.28s var(--zb-smooth), transform 0.28s var(--zb-smooth);
-    }
-    body.nt-edit .edit-hint { opacity: 1; transform: translateX(-50%); pointer-events: auto; }
-    .eh-btn {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      font: inherit;
-      font-size: 11.5px;
-      font-weight: 700;
-      padding: 7px 14px;
-      border-radius: 999px;
-      background: var(--glass);
-      box-shadow: none;
-      color: var(--text);
-      transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease, filter 0.15s ease;
-    }
-    .eh-btn:hover { background: var(--accent); color: #fff; }
-    .eh-btn:active { transform: scale(0.94); }
-    .eh-btn.primary { background: var(--accent); color: #fff; }
-    .eh-btn.primary:hover { filter: brightness(1.08); }
-    @media (max-width: 560px) {
-      .edit-hint { white-space: normal; text-align: left; max-width: 92vw; border-radius: 18px; }
-    }
-
-    /* ---------------- Контекстное меню плитки ---------------- */
-    .ctx-menu {
-      position: fixed;
-      z-index: 10;
-      min-width: 190px;
-      padding: 6px;
-      border-radius: 14px;
-      background: var(--glass-strong);
-      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.26);
-      display: none;
-    }
-    .ctx-menu.open { display: block; animation: zb-fade-up 0.16s var(--zb-smooth) both; }
-    .ctx-item {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      font: inherit;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      text-align: left;
-      padding: 8px 11px;
-      border-radius: 9px;
-      background: transparent;
-      color: var(--text);
-      font-size: 12.5px;
-      font-weight: 600;
-      transition: background 0.12s ease, color 0.12s ease;
-    }
-    .ctx-item:hover { background: var(--accent); color: #fff; }
-    .ctx-item.danger { color: #ff453a; }
-    .ctx-item.danger:hover { background: #ff453a; color: #fff; }
-    .ctx-sep { height: 1px; background: var(--hairline); margin: 5px 8px; }
-
-    /* ---------------- Панель кастомизации ---------------- */
-    .c-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 6;
-      background: rgba(0, 0, 0, 0.28);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
-    }
-    .c-overlay.open { opacity: 1; pointer-events: auto; }
-    .c-panel {
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 7;
-      width: min(360px, 94vw);
-      background: var(--glass-strong);
-      box-shadow: -12px 0 40px rgba(0, 0, 0, 0.22);
-      transform: translateX(103%);
-      transition: transform 0.32s var(--zb-smooth);
-      display: flex;
-      flex-direction: column;
-      color: var(--text);
-    }
-    .c-panel.open { transform: none; }
-    .c-head {
-      flex: 0 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--hairline);
-    }
-    .c-head h2 { font-size: 14px; font-weight: 700; }
-    .c-body { flex: 1 1 auto; overflow-y: auto; padding: 14px 16px 22px; }
-    .c-sec { margin-bottom: 18px; }
-    .c-sec > h3 { font-size: 11.5px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 9px; }
-
-    .face-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-    .face-card {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      font: inherit;
-      border-radius: 14px;
-      background: var(--glass);
-      box-shadow: none;
-      padding: 12px 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 7px;
-      color: var(--text);
-      transition: transform 0.18s var(--zb-spring), box-shadow 0.18s ease;
-    }
-    .face-card:hover { transform: translateY(-2px); }
-    .face-card.active { box-shadow: 0 0 0 2px var(--accent), var(--shadow-1); }
-    .face-prev { height: 34px; display: grid; place-items: center; }
-    .face-prev .fp-digital { font-size: 17px; font-weight: 200; font-variant-numeric: tabular-nums; }
-    .face-prev .fp-minimal { font-size: 16px; font-weight: 100; letter-spacing: 0.08em; }
-    .face-prev .fp-blocks { display: inline-flex; gap: 3px; }
-    .face-prev .fp-blocks i {
-      width: 9px; height: 16px; border-radius: 3px;
-      background: var(--text-2); display: inline-block;
-    }
-    .face-prev svg { width: 30px; height: 30px; }
-    .face-prev .an-hour2 { stroke: var(--text); stroke-width: 4.6; stroke-linecap: round; }
-    .face-prev .an-min2 { stroke: var(--text-2); stroke-width: 3.4; stroke-linecap: round; }
-    .face-prev .an-c2 { fill: var(--tile-bg); stroke: var(--ring); stroke-width: 1.6; }
-    .face-name { font-size: 11px; font-weight: 600; color: var(--text-2); }
-
-    .catalog { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-    .cat-chip {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      font: inherit;
-      text-align: left;
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      background: var(--glass);
-      box-shadow: none;
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 600;
-      transition: transform 0.16s var(--zb-spring), box-shadow 0.16s ease;
-    }
-    .cat-chip:hover { transform: translateY(-2px); box-shadow: 0 0 0 2px var(--accent), var(--shadow-1); }
-    .cat-chip:active { transform: scale(0.96); }
-    .cat-ico {
-      flex: 0 0 auto;
-      width: 26px;
-      height: 26px;
-      display: grid;
-      place-items: center;
-      border-radius: 8px;
-      background: var(--tile-bg);
-      box-shadow: none;
-      font-size: 13px;
-    }
-
-    .c-toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 9px 12px;
-      border-radius: 12px;
-      background: var(--glass);
-      box-shadow: none;
-      margin-bottom: 7px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .c-switch { position: relative; display: inline-block; width: 36px; height: 21px; flex: 0 0 auto; }
-    .c-switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
-    .c-switch .track {
-      position: absolute;
-      inset: 0;
-      border-radius: 999px;
-      background: var(--tile-bg);
-      box-shadow: none;
-      transition: background 0.2s ease;
-    }
-    .c-switch .track::after {
-      content: "";
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 17px;
-      height: 17px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-      transition: transform 0.22s var(--zb-spring);
-    }
-    .c-switch input:checked + .track { background: var(--accent); }
-    .c-switch input:checked + .track::after { transform: translateX(15px); }
-
-    .c-btn {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      font: inherit;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 9px 14px;
-      border-radius: 12px;
-      background: var(--glass);
-      box-shadow: none;
-      color: var(--text);
-      transition: transform 0.16s var(--zb-spring);
-    }
-    .c-btn:hover { transform: translateY(-1px); }
-    .c-btn:active { transform: scale(0.95); }
-    .c-btn.primary { background: var(--accent); color: #fff; }
-    .c-btn.danger { color: #ff453a; }
-
-    /* ---------------- Диалог плитки ---------------- */
+    /* ---------------- Диалог новой ссылки ---------------- */
     .dlg-wrap {
-      position: fixed;
-      inset: 0;
-      z-index: 9;
-      display: none;
-      place-items: center;
-      background: rgba(0, 0, 0, 0.32);
+      position: fixed; inset: 0; z-index: 50;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .dlg-wrap.open { display: flex; }
+    .dlg {
+      width: min(420px, calc(100vw - 40px));
+      border-radius: 18px;
+      background: var(--tile-bg);
+      border: 1px solid var(--tile-border);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(44px) saturate(180%);
+      -webkit-backdrop-filter: blur(44px) saturate(180%);
       padding: 20px;
     }
-    .dlg-wrap.open { display: grid; }
-    .dlg {
-      width: min(400px, 94vw);
-      border-radius: 18px;
-      background: var(--glass-strong);
-      box-shadow: var(--shadow-1);
-      padding: 18px;
-      color: var(--text);
-      animation: zb-fade-up 0.3s var(--zb-smooth) both;
-    }
-    .dlg h3 { font-size: 13.5px; font-weight: 700; margin-bottom: 12px; }
+    html[data-theme="dark"] .dlg { background: rgba(24, 24, 30, 0.92); }
+    .dlg h3 { font-size: 15.5px; font-weight: 700; margin-bottom: 12px; }
     .dlg label { display: block; font-size: 11px; font-weight: 600; color: var(--text-2); margin: 9px 0 5px; }
     .dlg input {
-      width: 100%;
-      border: 0;
-      outline: 0;
+      width: 100%; border: 0; outline: 0;
       border-radius: 10px;
-      background: var(--input-bg);
-      box-shadow: none;
+      background: var(--glass);
       padding: 9px 12px;
-      font: inherit;
-      font-size: 13px;
-      color: var(--text);
+      font: inherit; font-size: 13px; color: var(--text);
     }
+    html[data-theme="light"] .dlg input { background: rgba(0, 0, 0, 0.05); }
     .dlg input:focus { box-shadow: 0 0 0 2px var(--accent); }
     .dlg-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+    .c-btn {
+      appearance: none; border: 1px solid var(--tile-border); cursor: pointer;
+      height: 34px; padding: 0 16px; border-radius: 17px;
+      background: var(--tile-bg); color: var(--text);
+      font: inherit; font-size: 13px; font-weight: 600;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+    .c-btn:hover { filter: brightness(1.08); }
+    .c-btn:active { transform: scale(0.96); }
+    .c-btn.primary { background: var(--accent); border-color: transparent; color: #fff; }
 
     /* ---------------- Карточка скачивания (веб) ---------------- */
     .dl-card {
-      margin-top: 20px;
-      padding: 16px 10px;
-      border-radius: 16px;
-      background: transparent;
-      box-shadow: none;
+      margin-top: 40px; padding: 16px 10px;
+      border-radius: 16px; text-align: center;
+      animation-delay: 120ms;
     }
     .dl-title { font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 12px; }
-    .dl-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+    .dl-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
     .dl-btn {
-      display: inline-flex;
-      flex-direction: column;
-      gap: 3px;
-      padding: 10px 18px;
-      border-radius: 12px;
-      background: var(--accent);
-      color: #fff;
-      font-size: 12.5px;
-      font-weight: 600;
-      text-decoration: none;
+      display: inline-flex; flex-direction: column; gap: 3px;
+      padding: 10px 18px; border-radius: 12px;
+      background: var(--accent); color: #fff;
+      font-size: 12.5px; font-weight: 600; text-decoration: none;
       transition: transform 0.2s var(--zb-spring), filter 0.2s ease;
     }
     .dl-btn:hover { filter: brightness(1.08); transform: translateY(-1.5px); }
     .dl-btn:active { transform: scale(0.96); }
-    .dl-btn.ghost { background: var(--glass-strong); color: var(--text); box-shadow: none; }
+    .dl-btn.ghost { background: var(--tile-bg); color: var(--text); border: 1px solid var(--tile-border); }
     .dl-size { font-size: 10.5px; opacity: 0.8; font-weight: 400; }
-    .muted { font-size: 11.5px; color: var(--text-3); }
 
-    /* ---------------- Доступность: клавиатура ---------------- */
-    button:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    /* ---------------- Отключение анимаций ---------------- */
-    body.no-anim *, body.no-anim *::before, body.no-anim *::after {
-      transition: none !important;
-      animation: none !important;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-      }
+    /* ---------------- Доступность ---------------- */
+    button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    @media (max-width: 640px) {
+      .ql-tile { width: 76px; }
+      .ql-circle { width: 50px; height: 50px; border-radius: 14px; }
     }
   </style>
 </head>
-<body class="wp-sunset">
+<body class="wp-aurora">
 
   <div class="corner-tools">
-    <button id="editBtn" class="corner-btn" type="button" title="Кастомизация: виджеты и циферблат" aria-label="Кастомизация начальной страницы">
-      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+    <button id="gear" class="corner-btn" type="button" title="Настройки браузера" aria-label="Настройки браузера">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h.1a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
     </button>
-    <button id="gear" class="corner-btn" type="button" title="Настройки браузера (Ctrl+,)" aria-label="Настройки браузера">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h.1a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
-    </button>
-  </div>
-
-  <div class="edit-hint" id="editHint" role="status" aria-live="polite">
-    <span>Правка: тяните · двойной клик по плитке — имя · клик мимо — выход</span>
-    <button id="ehCatalog" class="eh-btn" type="button">Каталог</button>
-    <button id="ehDone" class="eh-btn primary" type="button">Готово</button>
   </div>
 
   <main class="wrap">
-    <header class="hero" id="hero">
-      <img class="logo" src="assets/logo.png" alt="Aera" width="38" height="38" draggable="false" />
-      <h1>Aera</h1>
+    <header class="greeting" id="greeting">
+      <h1 id="greetTitle">Добрый день</h1>
+      <p id="greetDate"></p>
     </header>
 
-    <div id="widgets" class="widgets" aria-label="Виджеты начальной страницы"></div>
+    <div id="qlGrid" class="ql-grid" aria-label="Быстрые ссылки"></div>
 
-    <div class="dl-card" id="dlCard" hidden aria-label="Скачать Aera для Windows"></div>
+    <div class="dl-card" id="dlCard" hidden aria-label="Скачать Aero для Windows"></div>
   </main>
 
-  <!-- Панель кастомизации -->
-  <div id="customOverlay" class="c-overlay"></div>
-  <aside id="customPanel" class="c-panel" aria-hidden="true" aria-label="Кастомизация начальной страницы">
-    <div class="c-head">
-      <h2>Кастомизация</h2>
-      <button id="customClose" class="corner-btn" type="button" title="Закрыть (Esc)" aria-label="Закрыть">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="c-body">
-      <div class="c-sec">
-        <h3>Циферблат</h3>
-        <div class="face-grid" id="faceGrid">
-          <button class="face-card" data-face="digital" type="button">
-            <span class="face-prev"><span class="fp-digital">09:41</span></span>
-            <span class="face-name">Крупный</span>
-          </button>
-          <button class="face-card" data-face="analog" type="button">
-            <span class="face-prev">
-              <svg viewBox="0 0 40 40"><circle class="an-c2" cx="20" cy="20" r="18"/><line class="an-hour2" x1="20" y1="20" x2="20" y2="11"/><line class="an-min2" x1="20" y1="20" x2="27" y2="24"/></svg>
-            </span>
-            <span class="face-name">Аналоговый</span>
-          </button>
-          <button class="face-card" data-face="minimal" type="button">
-            <span class="face-prev"><span class="fp-minimal">09:41</span></span>
-            <span class="face-name">Минимал</span>
-          </button>
-          <button class="face-card" data-face="blocks" type="button">
-            <span class="face-prev"><span class="fp-blocks"><i></i><i></i><i></i><i></i></span></span>
-            <span class="face-name">Электрон</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="c-sec">
-        <h3>Добавить виджет</h3>
-        <div class="catalog" id="catalog">
-          <button class="cat-chip" data-type="clock" type="button"><span class="cat-ico">🕐</span>Часы</button>
-          <button class="cat-chip" data-type="search" type="button"><span class="cat-ico">🔎</span>Поиск</button>
-          <button class="cat-chip" data-type="dial" type="button"><span class="cat-ico">🔗</span>Быстрые ссылки</button>
-          <button class="cat-chip" data-type="bookmarks" type="button"><span class="cat-ico">⭐</span>Закладки</button>
-          <button class="cat-chip" data-type="freq" type="button"><span class="cat-ico">📈</span>Часто посещаемые</button>
-          <button class="cat-chip" data-type="protect" type="button"><span class="cat-ico">🛡</span>Защита</button>
-          <button class="cat-chip" data-type="note" type="button"><span class="cat-ico">📝</span>Заметка</button>
-          <button class="cat-chip" data-type="link" type="button"><span class="cat-ico">🌐</span>Ссылка-карточка</button>
-        </div>
-      </div>
-
-      <div class="c-sec">
-        <h3>Экран</h3>
-        <div class="c-toggle-row"><span>Логотип Aera сверху</span>
-          <label class="c-switch"><input type="checkbox" id="tHero" /><span class="track"></span></label>
-        </div>
-        <div class="c-toggle-row" id="dlToggleRow" hidden><span>Карточка «Скачать Aera»</span>
-          <label class="c-switch"><input type="checkbox" id="tDl" /><span class="track"></span></label>
-        </div>
-        <div class="c-toggle-row"><span>Названия на плитках</span>
-          <label class="c-switch"><input type="checkbox" id="tLabels" /><span class="track"></span></label>
-        </div>
-        <button class="c-btn danger" id="btnResetNt" type="button" style="width:100%; margin-top:6px;">Сбросить экран к стандартному</button>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Контекстное меню плитки -->
-  <div id="ctxMenu" class="ctx-menu" role="menu" aria-label="Действия со ссылкой"></div>
-
-  <!-- Диалог добавления/правки ссылки -->
-  <div id="dlgWrap" class="dlg-wrap" role="dialog" aria-modal="true" aria-label="Ссылка">
+  <!-- Диалог добавления ссылки -->
+  <div id="dlgWrap" class="dlg-wrap" role="dialog" aria-modal="true" aria-label="Новая ссылка">
     <div class="dlg">
-      <h3 id="dlgTitle">Добавить ссылку</h3>
+      <h3 id="dlgTitle">Новая ссылка</h3>
       <label for="dlgUrl">Адрес сайта</label>
       <input id="dlgUrl" type="text" placeholder="Например youtube.com" spellcheck="false" autocomplete="off" />
       <label for="dlgName">Название (необязательно)</label>
@@ -1043,77 +281,27 @@
       var TAB_ID = null;
       try { TAB_ID = new URLSearchParams(location.search).get('t'); } catch (e) { TAB_ID = null; }
 
-      function getLS(key, fallback) {
-        try {
-          var v = localStorage.getItem(key);
-          return v ? JSON.parse(v) : fallback;
-        } catch (e) { return fallback; }
-      }
-      function setLS(key, value) {
-        try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* noop */ }
-      }
-
-      var ENGINES = [
-        { key: 'google', name: 'Google',     base: 'https://www.google.com/search?q=',  letter: 'G' },
-        { key: 'yandex', name: 'Яндекс',     base: 'https://yandex.ru/search/?text=',   letter: 'Я' },
-        { key: 'bing',   name: 'Bing',       base: 'https://www.bing.com/search?q=',    letter: 'B' },
-        { key: 'ddg',    name: 'DuckDuckGo', base: 'https://duckduckgo.com/?q=',        letter: 'D' }
+      /* ---- общие настройки Aero (тот же key, что и в приложении) ---- */
+      var SKEY = 'aera.settings.v2';
+      var DEFAULT_LINKS = [
+        { title: 'YouTube', url: 'https://www.youtube.com' },
+        { title: 'Google', url: 'https://www.google.com' },
+        { title: 'Telegram', url: 'https://web.telegram.org' },
+        { title: 'GitHub', url: 'https://github.com' },
+        { title: 'Wiki', url: 'https://ru.wikipedia.org' },
+        { title: 'Steam', url: 'https://store.steampowered.com' },
+        { title: 'Twitter', url: 'https://x.com' },
+        { title: 'Reddit', url: 'https://www.reddit.com' }
       ];
-      var WALLPAPERS = ['sunset', 'sakura', 'mint', 'golden', 'midnight', 'ocean', 'lavender', 'custom'];
-      var WALLPAPER_LEGACY = { aurora: 'sunset', graphite: 'midnight' };
-      var ACCENTS = ['azure', 'sunset', 'sakura', 'mint', 'golden', 'lavender', 'crimson', 'graphite'];
+      var WALLPAPERS = ['aurora', 'sunset', 'forest', 'ocean', 'graphite', 'rose'];
 
-      var DEFAULTS = { engine: 'google', theme: 'light', wallpaper: 'sunset', animations: true };
-
-      var settings = Object.assign({}, DEFAULTS, getLS('zsettings', {}) || {});
-      if (ENGINES.every(function (e) { return e.key !== settings.engine; })) settings.engine = 'google';
-      if (WALLPAPERS.indexOf(settings.wallpaper) < 0) {
-        settings.wallpaper = WALLPAPER_LEGACY[settings.wallpaper] || 'sunset';
+      function getSettings() {
+        try { return JSON.parse(localStorage.getItem(SKEY) || 'null') || {}; } catch (e) { return {}; }
+      }
+      function saveSettings(s) {
+        try { localStorage.setItem(SKEY, JSON.stringify(s)); } catch (e) { /* noop */ }
       }
 
-      function saveSettingsHost() {
-        setLS('zsettings', settings);
-        /* хост (другой документ того же origin) слышит storage-событие */
-        try { setLS('znt_signal', { action: 'settings-changed', ts: Date.now() }); } catch (e) { /* noop */ }
-        if (IN_WEB) {
-          try { window.parent.postMessage({ __zaeraengine: settings.engine }, '*'); } catch (e) { /* noop */ }
-        }
-      }
-
-      /* ---- тема, акцент и обои ---- */
-      var dark = settings.theme === 'dark' ||
-        (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-      document.documentElement.dataset.accent =
-        ACCENTS.indexOf(settings.accent) >= 0 ? settings.accent : 'azure';
-      var wp = WALLPAPERS.indexOf(settings.wallpaper) >= 0 ? settings.wallpaper : 'sunset';
-      WALLPAPERS.forEach(function (w) { document.body.classList.remove('wp-' + w); });
-      document.body.classList.remove('wp-custom');
-      if (wp === 'custom') {
-        var wpImg = getLS('zwallpaper', null);
-        if (typeof wpImg === 'string' && wpImg.indexOf('data:image') === 0) {
-          document.body.style.setProperty('--wp-img', 'url("' + wpImg + '")');
-          document.body.classList.add('wp-custom');
-        } else {
-          wp = 'sunset';
-        }
-      }
-      if (wp !== 'custom') document.body.classList.add('wp-' + wp);
-      if (settings.animations === false) document.body.classList.add('no-anim');
-
-      /* ---- навигация наружу ---- */
-      function nav(url, force) {
-        /* в режиме правки переходы по плиткам/ссылкам отключены — как у флагманов.
-           Исключение — служебная навигация (настройки), помеченная force. */
-        if (!force && document.body.classList.contains('nt-edit')) return;
-        if (IN_WEB) {
-          try { window.parent.postMessage({ __zaeranav: true, url: url, tab: TAB_ID }, '*'); } catch (e) { /* noop */ }
-        } else {
-          window.location.href = url;
-        }
-      }
-
-      /* ----helpers ---- */
       function hostOf(url) {
         try { return new URL(url).hostname.replace(/^www\./i, ''); } catch (e) { return String(url || ''); }
       }
@@ -1127,13 +315,6 @@
           return 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(h) + '&sz=64';
         } catch (e) { return ''; }
       }
-      function uid() { return 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-      function el(tag, cls, text) {
-        var n = document.createElement(tag);
-        if (cls) n.className = cls;
-        if (text != null) n.textContent = text;
-        return n;
-      }
       function normalizeUrl(raw) {
         var s = String(raw || '').trim();
         if (!s) return '';
@@ -1141,873 +322,177 @@
         if (/^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?([\/?#].*)?$/i.test(s)) return 'https://' + s;
         return '';
       }
-
-      /* ================================================================
-         КОНФИГУРАЦИЯ ЭКРАНА (znewtab)
-         ================================================================ */
-      var DIAL_SEED = [
-        { url: 'https://youtube.com',  title: 'YouTube' },
-        { url: 'https://www.google.com', title: 'Google' },
-        { url: 'https://vk.com',       title: 'ВКонтакте' },
-        { url: 'https://ya.ru',        title: 'Яндекс' },
-        { url: 'https://github.com',   title: 'GitHub' },
-        { url: 'https://ru.wikipedia.org', title: 'Википедия' },
-        { url: 'https://t.me',         title: 'Telegram' },
-        { url: 'https://www.reddit.com', title: 'Reddit' }
-      ];
-
-      function ntDefaults() {
-        return {
-          v: 3,
-          showHero: true,
-          showDl: true,
-          showTileLabels: true,
-          widgets: [
-            { id: 'w-clock',   type: 'clock',   size: 2, face: 'digital' },
-            { id: 'w-search',  type: 'search',  size: 2 },
-            { id: 'w-dial',    type: 'dial',    size: 2, entries: DIAL_SEED.slice() },
-            { id: 'w-protect', type: 'protect', size: 1 },
-            { id: 'w-note',    type: 'note',    size: 1, text: '' }
-          ]
-        };
+      function el(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text != null) n.textContent = text;
+        return n;
       }
 
-      var NT = getLS('znewtab', null);
-      if (!NT || typeof NT !== 'object' || !Array.isArray(NT.widgets)) NT = ntDefaults();
-      if (typeof NT.showHero !== 'boolean') NT.showHero = true;
-      if (typeof NT.showDl !== 'boolean') NT.showDl = true;
-      if (typeof NT.showTileLabels !== 'boolean') NT.showTileLabels = true;
-      if (NT.showTileLabels === false) document.body.classList.add('no-tile-labels');
-      /* убрать неизвестные типы из прошлых версий */
-      var KNOWN = ['clock', 'search', 'dial', 'bookmarks', 'freq', 'protect', 'note', 'link'];
-      NT.widgets = NT.widgets.filter(function (w) { return w && KNOWN.indexOf(w.type) >= 0; });
-      NT.widgets.forEach(function (w) {
-        if (!w.id) w.id = uid();
-        w.size = w.size === 1 ? 1 : 2;
-        if (w.type === 'clock' && ['digital', 'analog', 'minimal', 'blocks'].indexOf(w.face) < 0) w.face = 'digital';
-        if (w.type === 'dial' && !Array.isArray(w.entries)) w.entries = [];
-        if (w.type === 'note' && typeof w.text !== 'string') w.text = '';
-      });
-
-      /* v3: быстрые ссылки — по центру экрана, сразу под поиском (как у флагманов) */
-      if (NT.v !== 3) {
-        NT.v = 3;
-        var dIdx = -1;
-        NT.widgets.forEach(function (w, i) { if (w.type === 'dial') dIdx = i; });
-        if (dIdx >= 0) {
-          var dialW = NT.widgets.splice(dIdx, 1)[0];
-          dialW.size = 2;
-          var sIdx = -1;
-          NT.widgets.forEach(function (w, i) { if (w.type === 'search') sIdx = i; });
-          if (sIdx >= 0) NT.widgets.splice(sIdx + 1, 0, dialW);
-          else NT.widgets.unshift(dialW);
+      /* ---- тема, обои, затемнение ---- */
+      var s = getSettings();
+      var theme = s.theme === 'light' ? 'light' : s.theme === 'auto'
+        ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+        : 'dark';
+      document.documentElement.dataset.theme = theme;
+      if (s.accent) {
+        var ACCENTS = { safari: '#0a84ff', orange: '#ff9f0a', green: '#32d74b', pink: '#ff375f', graphite: '#98989d' };
+        if (ACCENTS[s.accent]) {
+          document.documentElement.style.setProperty('--accent', ACCENTS[s.accent]);
         }
-        setLS('znewtab', NT);
       }
-
-      var saveNtTimer = null;
-      function saveNt() {
-        clearTimeout(saveNtTimer);
-        saveNtTimer = setTimeout(function () { setLS('znewtab', NT); }, 120);
-      }
-
-      /* ================================================================
-         ЧАСЫ
-         ================================================================ */
-      var clockUpdaters = [];
-      function pad2(n) { return n < 10 ? '0' + n : String(n); }
-
-      function makeClock(wg) {
-        var box = el('div', 'clock face-' + (wg.face || 'digital'));
-        var time, date, blk, segH, segM, secs, svg, hourLine, minLine, secLine;
-
-        if (wg.face === 'analog') {
-          var NS = 'http://www.w3.org/2000/svg';
-          svg = document.createElementNS(NS, 'svg');
-          svg.setAttribute('viewBox', '0 0 100 100');
-          var ring = document.createElementNS(NS, 'circle');
-          ring.setAttribute('cx', '50'); ring.setAttribute('cy', '50'); ring.setAttribute('r', '46');
-          ring.setAttribute('class', 'an-ring');
-          svg.appendChild(ring);
-          for (var i = 0; i < 12; i++) {
-            var mk = document.createElementNS(NS, 'line');
-            var a = (i / 12) * Math.PI * 2;
-            var r1 = i % 3 === 0 ? 37 : 40;
-            mk.setAttribute('x1', 50 + Math.sin(a) * r1);
-            mk.setAttribute('y1', 50 - Math.cos(a) * r1);
-            mk.setAttribute('x2', 50 + Math.sin(a) * 44);
-            mk.setAttribute('y2', 50 - Math.cos(a) * 44);
-            mk.setAttribute('class', 'an-mark');
-            svg.appendChild(mk);
-          }
-          hourLine = document.createElementNS(NS, 'line');
-          hourLine.setAttribute('x1', '50'); hourLine.setAttribute('y1', '50'); hourLine.setAttribute('x2', '50'); hourLine.setAttribute('y2', '28');
-          hourLine.setAttribute('class', 'an-hour');
-          minLine = document.createElementNS(NS, 'line');
-          minLine.setAttribute('x1', '50'); minLine.setAttribute('y1', '50'); minLine.setAttribute('x2', '50'); minLine.setAttribute('y2', '18');
-          minLine.setAttribute('class', 'an-min');
-          secLine = document.createElementNS(NS, 'line');
-          secLine.setAttribute('x1', '50'); secLine.setAttribute('y1', '54'); secLine.setAttribute('x2', '50'); secLine.setAttribute('y2', '15');
-          secLine.setAttribute('class', 'an-sec');
-          var pin = document.createElementNS(NS, 'circle');
-          pin.setAttribute('cx', '50'); pin.setAttribute('cy', '50'); pin.setAttribute('r', '2.6');
-          pin.setAttribute('class', 'an-pin');
-          svg.appendChild(hourLine); svg.appendChild(minLine); svg.appendChild(secLine); svg.appendChild(pin);
-          box.appendChild(svg);
-          clockUpdaters.push(function () {
-            var d = new Date();
-            var h = d.getHours() % 12, m = d.getMinutes(), s = d.getSeconds();
-            hourLine.style.transform = 'rotate(' + ((h + m / 60) * 30) + 'deg)';
-            minLine.style.transform = 'rotate(' + ((m + s / 60) * 6) + 'deg)';
-            secLine.style.transform = 'rotate(' + (s * 6) + 'deg)';
-          });
-        } else if (wg.face === 'blocks') {
-          blk = el('div', 'blk');
-          segH = el('span', 'seg', '00');
-          var colon = el('span', 'colon', ':');
-          segM = el('span', 'seg', '00');
-          secs = el('span', 'secs', '00');
-          blk.appendChild(segH); blk.appendChild(colon); blk.appendChild(segM); blk.appendChild(secs);
-          box.appendChild(blk);
-          clockUpdaters.push(function () {
-            var d = new Date();
-            segH.textContent = pad2(d.getHours());
-            segM.textContent = pad2(d.getMinutes());
-            secs.textContent = pad2(d.getSeconds());
-          });
+      function applyWallpaper() {
+        var st = getSettings();
+        WALLPAPERS.forEach(function (w) { document.body.classList.remove('wp-' + w); });
+        document.body.classList.remove('wp-custom');
+        var wp = WALLPAPERS.indexOf(st.wallpaper) >= 0 ? st.wallpaper : 'aurora';
+        if (wp === 'aurora' && st.wallpaper == null) wp = 'aurora';
+        if (st.wallpaper === 'custom' && st.wallpaperUrl) {
+          document.body.style.setProperty('--wp-img', 'url("' + st.wallpaperUrl.replace(/"/g, '%22') + '")');
+          document.body.classList.add('wp-custom');
         } else {
-          time = el('div', 'time', '00:00');
-          box.appendChild(time);
-          clockUpdaters.push(function () {
-            var d = new Date();
-            time.textContent = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
-          });
+          document.body.classList.add('wp-' + wp);
         }
+        document.body.style.setProperty('--wp-dim', String((st.wallpaperDim == null ? 20 : st.wallpaperDim) / 100));
+      }
+      applyWallpaper();
 
-        if (wg.face !== 'minimal') {
-          date = el('div', 'date');
-          box.appendChild(date);
-          clockUpdaters.push(function () {
-            var d = new Date();
-            try {
-              date.textContent = d.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
-            } catch (e) { date.textContent = d.toLocaleDateString(); }
-          });
+      /* ---- приветствие ---- */
+      function renderGreeting() {
+        var h = new Date().getHours();
+        var greet = h < 5 ? 'Доброй ночи' : h < 11 ? 'Доброе утро' : h < 17 ? 'Добрый день' : h < 23 ? 'Добрый вечер' : 'Доброй ночи';
+        document.getElementById('greetTitle').textContent = greet;
+        document.getElementById('greetDate').textContent =
+          new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+      }
+      renderGreeting();
+
+      /* ---- навигация наружу ---- */
+      function nav(url) {
+        if (IN_WEB) {
+          try { window.parent.postMessage({ __zaeranav: true, url: url, tab: TAB_ID }, '*'); } catch (e) { /* noop */ }
         } else {
-          date = el('div', 'date');
-          box.appendChild(date);
-          clockUpdaters.push(function () {
-            var d = new Date();
-            try {
-              date.textContent = d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
-            } catch (e) { date.textContent = ''; }
-          });
+          window.location.href = url;
         }
-        clockUpdaters.forEach(function (fn) { fn(); });
-        return box;
       }
 
-      setInterval(function () {
-        clockUpdaters.forEach(function (fn) { try { fn(); } catch (e) { /* noop */ } });
-      }, 1000);
+      /* ---- быстрые ссылки ---- */
+      var grid = document.getElementById('qlGrid');
 
-      /* ================================================================
-         ПОИСК
-         ================================================================ */
-      function makeSearch() {
-        var box = el('div');
-        var pill = el('div', 'searchbox-w');
-        pill.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
-        var input = el('input');
-        input.type = 'text';
-        input.placeholder = 'Поиск в ' + (engine().name) + ' или адрес сайта';
-        input.spellcheck = false;
-        input.setAttribute('aria-label', 'Поиск или адрес сайта');
-        pill.appendChild(input);
-        box.appendChild(pill);
-
-        var row = el('div', 'eng-row');
-        ENGINES.forEach(function (e) {
-          var c = el('button', 'eng-chip2' + (e.key === settings.engine ? ' active' : ''), e.name);
-          c.type = 'button';
-          c.addEventListener('click', function () {
-            settings.engine = e.key;
-            saveSettingsHost();
-            row.querySelectorAll('.eng-chip2').forEach(function (x) { x.classList.remove('active'); });
-            c.classList.add('active');
-            input.placeholder = 'Поиск в ' + e.name + ' или адрес сайта';
-            input.focus();
-          });
-          row.appendChild(c);
-        });
-        box.appendChild(row);
-
-        function submit() {
-          var q = String(input.value || '').trim();
-          if (!q) return;
-          var eng = engine();
-          var url;
-          if (/^https?:\/\//i.test(q) || /^[a-z0-9-]+(\.[a-z0-9-]+)+/i.test(q)) {
-            url = /^https?:\/\//i.test(q) ? q : 'https://' + q;
-          } else {
-            url = eng.base + encodeURIComponent(q);
-          }
-          nav(url);
-        }
-        input.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
-        return box;
-      }
-      function engine() {
-        for (var i = 0; i < ENGINES.length; i++) if (ENGINES[i].key === settings.engine) return ENGINES[i];
-        return ENGINES[0];
+      function links() {
+        var st = getSettings();
+        return Array.isArray(st.quickLinks) && st.quickLinks.length ? st.quickLinks : DEFAULT_LINKS.slice();
       }
 
-      /* ================================================================
-         ПЛИТКИ: диск / закладки / частые
-         ================================================================ */
-      function makeTile(url, favicon, label, opts) {
-        var o = opts || {};
-        var btn = el('button', 'tile-btn');
-        btn.type = 'button';
-        btn.title = label || url;
-        btn.draggable = !!o.draggable;
+      function renderTiles() {
+        grid.textContent = '';
+        var list = links();
+        list.forEach(function (l, i) {
+          var btn = el('button', 'ql-tile');
+          btn.type = 'button';
+          btn.title = (l.title || hostOf(l.url)) + ' — ' + hostOf(l.url);
 
-        var circle = el('span', 'tile-c');
-        if (favicon) {
+          var circle = el('span', 'ql-circle');
           var img = el('img');
-          img.src = favicon;
+          img.src = faviconUrl(l.url);
           img.alt = '';
           img.referrerPolicy = 'no-referrer';
-          img.onerror = function () {
-            img.remove();
-            circle.textContent = letterFor(url);
-          };
+          img.onerror = function () { img.remove(); circle.textContent = letterFor(l.url); };
           circle.appendChild(img);
-        } else {
-          circle.textContent = letterFor(url);
-        }
-        btn.appendChild(circle);
+          btn.appendChild(circle);
 
-        var lab = el('span', 'tile-label' + (o.noTitle ? ' void' : ''), label || hostOf(url));
-        btn.appendChild(lab);
+          btn.appendChild(el('span', 'ql-label', l.title || hostOf(l.url)));
 
-        /* переименование без лишних кнопок: двойной клик в режиме правки,
-           правый клик — в любой момент */
-        if (o.onEdit) {
-          btn.addEventListener('dblclick', function (e) {
-            if (document.body.classList.contains('nt-edit')) {
-              e.preventDefault();
-              e.stopPropagation();
-              o.onEdit(true);
-            }
-          });
-        }
-        if (o.onDelete) {
-          var x = el('button', 'tile-x', '✕');
+          var x = el('button', 'ql-x');
           x.type = 'button';
           x.title = 'Удалить';
-          x.addEventListener('click', function (e) { e.stopPropagation(); o.onDelete(); });
+          x.setAttribute('aria-label', 'Удалить ' + (l.title || l.url));
+          x.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M4.5 4.5 L11.5 11.5 M11.5 4.5 L4.5 11.5" stroke-width="1.8" stroke-linecap="round"/></svg>';
+          x.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var st = getSettings();
+            st.quickLinks = links();
+            st.quickLinks.splice(i, 1);
+            saveSettings(st);
+            renderTiles();
+          });
           btn.appendChild(x);
-        }
-        if (o.onClick) btn.addEventListener('click', function () { o.onClick(); });
-        return btn;
-      }
 
-      function makeDial(wg) {
-        var box = el('div');
-        var tiles = el('div', 'tiles');
-
-        function renderTiles() {
-          tiles.textContent = '';
-          (wg.entries || []).forEach(function (t, i) {
-            function editEntry(focusName) {
-              openTileDialog({ url: t.url, title: t.title }, function (v) {
-                t.url = v.url;
-                t.title = v.title || hostOf(v.url);
-                saveNt(); renderTiles();
-              }, null, focusName === true);
-            }
-            function delEntry() {
-              wg.entries.splice(i, 1);
-              saveNt(); renderTiles();
-            }
-            var btn = makeTile(t.url, faviconUrl(t.url), t.title || hostOf(t.url), {
-              draggable: true,
-              noTitle: t.noTitle === true,
-              onClick: function () { nav(t.url); },
-              onEdit: editEntry,
-              onDelete: delEntry
-            });
-            /* контекстное меню: открыть / переименовать / скрыть название / удалить */
-            btn.dataset.ctx = '1';
-            btn.__ctxItems = [
-              { label: 'Открыть', fn: function () { nav(t.url); } },
-              '-',
-              { label: 'Переименовать', fn: function () { editEntry(true); } },
-              { label: t.noTitle ? 'Показать название' : 'Скрыть название', fn: function () {
-                  t.noTitle = !t.noTitle;
-                  saveNt(); renderTiles();
-                } },
-              { label: 'Удалить', danger: true, fn: delEntry }
-            ];
-            /* drag & drop порядка плиток */
-            btn.addEventListener('dragstart', function (e) {
-              dragTile = { wg: wg, index: i };
-              btn.classList.add('drag-ghost');
-              e.dataTransfer.effectAllowed = 'move';
-              try { e.dataTransfer.setData('text/plain', 'dial'); } catch (err) { /* noop */ }
-            });
-            btn.addEventListener('dragend', function () {
-              dragTile = null;
-              btn.classList.remove('drag-ghost');
-            });
-            btn.addEventListener('dragover', function (e) {
-              if (!dragTile || dragTile.wg !== wg || dragTile.index === i) return;
-              e.preventDefault();
-            });
-            btn.addEventListener('drop', function (e) {
-              if (!dragTile || dragTile.wg !== wg || dragTile.index === i) return;
-              e.preventDefault();
-              var moved = wg.entries.splice(dragTile.index, 1)[0];
-              wg.entries.splice(i, 0, moved);
-              dragTile = null;
-              saveNt(); renderTiles();
-            });
-            tiles.appendChild(btn);
-          });
-          var add = el('button', 'tile-btn tile-add');
-          add.type = 'button';
-          add.title = 'Добавить ссылку';
-          var ac = el('span', 'tile-c', '+');
-          add.appendChild(ac);
-          add.appendChild(el('span', 'tile-label', 'Добавить'));
-          add.addEventListener('click', function () {
-            openTileDialog(null, function (v) {
-              wg.entries.push({ url: v.url, title: v.title || hostOf(v.url) });
-              if (wg.entries.length > 16) wg.entries.length = 16;
-              saveNt(); renderTiles();
-            });
-          });
-          tiles.appendChild(add);
-        }
-        renderTiles();
-        box.appendChild(tiles);
-        return box;
-      }
-
-      function makeBookmarks() {
-        var box = el('div');
-        var tiles = el('div', 'tiles');
-        var list = (getLS('zbookmarks', []) || [])
-          .filter(function (b) { return b && b.url && /^https?:/i.test(b.url); })
-          .slice(0, 12);
-        if (!list.length) {
-          var hint = el('div', 'empty-hint', 'Здесь появятся закладки. Откройте сайт и нажмите звёздочку в адресной строке (Ctrl+D).');
-          box.appendChild(hint);
-          return box;
-        }
-        list.forEach(function (b) {
-          tiles.appendChild(makeTile(b.url, b.favicon || faviconUrl(b.url), b.title || hostOf(b.url), {
-            onClick: function () { nav(b.url); }
-          }));
+          btn.addEventListener('click', function () { nav(l.url); });
+          grid.appendChild(btn);
         });
-        box.appendChild(tiles);
-        return box;
-      }
 
-      function topFromHistory() {
-        var hist = getLS('zhistory', []) || [];
-        var byHost = {};
-        for (var i = 0; i < hist.length; i++) {
-          try {
-            var u = new URL(hist[i].url);
-            if (u.protocol !== 'https:' && u.protocol !== 'http:') continue;
-            var h = u.hostname.replace(/^www\./i, '');
-            if (!byHost[h]) byHost[h] = { host: h, count: 0, url: u.origin, title: '' };
-            byHost[h].count++;
-            if (!byHost[h].title && hist[i].title) byHost[h].title = hist[i].title;
-          } catch (e) { /* noop */ }
-        }
-        return Object.keys(byHost).map(function (k) { return byHost[k]; })
-          .sort(function (a, b) { return b.count - a.count; });
-      }
-
-      function makeFreq() {
-        var box = el('div');
-        var top = topFromHistory().slice(0, 12);
-        if (!top.length) {
-          box.appendChild(el('div', 'empty-hint', 'Часто посещаемые появятся по мере сёрфинга.'));
-          return box;
-        }
-        var tiles = el('div', 'tiles');
-        top.forEach(function (s) {
-          tiles.appendChild(makeTile(s.url, faviconUrl(s.url), s.title || s.host, {
-            onClick: function () { nav(s.url); }
-          }));
+        var add = el('button', 'ql-tile ql-add');
+        add.type = 'button';
+        add.title = 'Добавить ссылку';
+        add.setAttribute('aria-label', 'Добавить ссылку');
+        var ac = el('span', 'ql-circle', '+');
+        add.appendChild(ac);
+        add.appendChild(el('span', 'ql-label', 'Добавить'));
+        add.addEventListener('click', function () {
+          document.getElementById('dlgUrl').value = '';
+          document.getElementById('dlgName').value = '';
+          document.getElementById('dlgWrap').classList.add('open');
+          setTimeout(function () { try { document.getElementById('dlgUrl').focus(); } catch (e) {} }, 60);
         });
-        box.appendChild(tiles);
-        return box;
+        grid.appendChild(add);
       }
+      renderTiles();
 
-      /* ================================================================
-         ЗАЩИТА
-         ================================================================ */
-      var blockedCount = 0;
-
-      function protBadge(on, nameOff) {
-        var b = el('span', 'prot-badge' + (on ? '' : ' off'), on ? 'Вкл' : (nameOff || 'Выкл'));
-        return b;
-      }
-
-      function makeProtect(wg) {
-        var box = el('div');
-
-        var head = el('div', 'protect-head');
-        head.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v5c0 4.6 3.2 8.4 7.5 10 4.3-1.6 7.5-5.4 7.5-10V6Z"/><path d="m9 12 2 2 4-4.5"/></svg>';
-        var ht = el('div');
-        ht.appendChild(el('b', null, 'Aera предотвращает отслеживание'));
-        var analyzed = topFromHistory().length;
-        ht.appendChild(el('span', null, 'Сайтов проанализировано: ' + analyzed +
-          (blockedCount ? ' · блокировок за сессию: ' + blockedCount : '')));
-        head.appendChild(ht);
-        box.appendChild(head);
-
-        /* каждая строка — готовый переключатель: один клик, никаких лишних кнопок */
-        var PROT_ROWS = [
-          { key: 'adBlock',   name: 'Блокировка рекламы', def: true },
-          { key: 'httpsOnly', name: 'HTTPS-only',         def: true },
-          { key: 'dnt',       name: 'Do Not Track',       def: true },
-          { key: 'block3p',   name: 'Сторонние cookie',   def: false }
-        ];
-        function protOn(r) {
-          var st = getLS('zsettings', {}) || {};
-          return st[r.key] === undefined ? r.def : !!st[r.key];
-        }
-        function setProt(key, on) {
-          settings[key] = on;
-          setLS('zsettings', settings);
-          try {
-            setLS('znt_signal', {
-              action: key === 'adBlock' ? 'set-adblock' : 'settings-changed',
-              on: on, ts: Date.now()
-            });
-          } catch (e) { /* noop */ }
-          renderAll();
-        }
-
-        var rows = el('div', 'protect-rows');
-        PROT_ROWS.forEach(function (r) {
-          var row = el('button', 'prot-row');
-          row.type = 'button';
-          row.setAttribute('aria-pressed', protOn(r) ? 'true' : 'false');
-          row.title = 'Нажмите, чтобы включить или выключить';
-          row.appendChild(el('span', 'pr-name', r.name));
-          row.appendChild(protBadge(protOn(r), 'Выкл'));
-          row.addEventListener('click', function () { setProt(r.key, !protOn(r)); });
-          rows.appendChild(row);
-        });
-        box.appendChild(rows);
-
-        /* «Защитить всё» появляется, только когда что-то выключено */
-        if (PROT_ROWS.some(function (r) { return !protOn(r); })) {
-          var acts = el('div', 'prot-actions');
-          var all = el('button', 'p-btn', 'Защитить всё');
-          all.type = 'button';
-          all.addEventListener('click', function () {
-            settings.adBlock = true;
-            settings.httpsOnly = true;
-            settings.dnt = true;
-            settings.tightReferrer = true;
-            settings.block3p = true;
-            setLS('zsettings', settings);
-            try { setLS('znt_signal', { action: 'protect-all', ts: Date.now() }); } catch (e) { /* noop */ }
-            renderAll();
-          });
-          acts.appendChild(all);
-          box.appendChild(acts);
-        }
-        return box;
-      }
-
-      /* ================================================================
-         ЗАМЕТКА
-         ================================================================ */
-      function makeNote(wg) {
-        var box = el('div');
-        var ta = el('textarea', 'note-area');
-        ta.placeholder = 'Ваша заметка…';
-        ta.value = wg.text || '';
-        ta.setAttribute('aria-label', 'Заметка');
-        var t = null;
-        ta.addEventListener('input', function () {
-          wg.text = ta.value;
-          clearTimeout(t);
-          t = setTimeout(saveNt, 350);
-        });
-        box.appendChild(ta);
-        box.appendChild(el('div', 'note-hint', 'Сохраняется автоматически в этом браузере'));
-        return box;
-      }
-
-      /* ================================================================
-         ССЫЛКА-КАРТОЧКА
-         ================================================================ */
-      function makeLink(wg) {
-        var box = el('div');
-        var card = el('div', 'link-card');
-        var c = el('span', 'tile-c');
-        var fav = faviconUrl(wg.url || '');
-        if (fav) {
-          var img = el('img');
-          img.src = fav;
-          img.alt = '';
-          img.onerror = function () { img.remove(); c.textContent = letterFor(wg.url || ''); };
-          c.appendChild(img);
-        } else {
-          c.textContent = letterFor(wg.url || '');
-        }
-        card.appendChild(c);
-        var t = el('div');
-        t.appendChild(el('div', 'lc-t', wg.title || hostOf(wg.url || '')));
-        t.appendChild(el('div', 'lc-u', (wg.url || '').replace(/^https?:\/\//i, '')));
-        card.appendChild(t);
-        card.addEventListener('click', function () { if (wg.url) nav(wg.url); });
-        box.appendChild(card);
-        return box;
-      }
-
-      /* ================================================================
-         СБОРКА ЭКРАНА
-         ================================================================ */
-      var WIDGET_META = {
-        clock:    { name: 'Часы',              defSize: 2 },
-        search:   { name: 'Поиск',             defSize: 2 },
-        dial:     { name: 'Быстрые ссылки',    defSize: 2 },
-        bookmarks:{ name: 'Закладки',          defSize: 2 },
-        freq:     { name: 'Часто посещаемые',  defSize: 2 },
-        protect:  { name: 'Защита',            defSize: 1 },
-        note:     { name: 'Заметка',           defSize: 1 },
-        link:     { name: 'Ссылка-карточка',   defSize: 1 }
-      };
-      var widgetsBox = document.getElementById('widgets');
-      var dragW = null;
-      var dragTile = null;
-
-      function buildWidgetBody(wg) {
-        switch (wg.type) {
-          case 'clock': return makeClock(wg);
-          case 'search': return makeSearch();
-          case 'dial': return makeDial(wg);
-          case 'bookmarks': return makeBookmarks();
-          case 'freq': return makeFreq();
-          case 'protect': return makeProtect(wg);
-          case 'note': return makeNote(wg);
-          case 'link': return makeLink(wg);
-          default: return el('div', 'empty-hint', 'Неизвестный виджет');
-        }
-      }
-
-      function renderAll() {
-        clockUpdaters.length = 0;
-        widgetsBox.textContent = '';
-        NT.widgets.forEach(function (wg, i) {
-          var sec = el('section', 'widget');
-          sec.dataset.id = wg.id;
-          sec.dataset.size = wg.size === 1 ? 'half' : 'wide';
-          sec.dataset.type = wg.type;
-
-          var head = el('div', 'wg-head');
-          head.appendChild(el('h2', null, WIDGET_META[wg.type] ? WIDGET_META[wg.type].name : 'Виджет'));
-          var tools = el('div', 'wg-tools');
-
-          /* минимум кнопок: размер и удаление — порядок меняется перетаскиванием */
-          var size = el('button', 'wg-btn', wg.size === 1 ? '½' : '▬');
-          size.type = 'button';
-          size.title = wg.size === 1 ? 'Растянуть на всю ширину' : 'Сделать половиной ширины';
-          size.addEventListener('click', function () {
-            wg.size = wg.size === 1 ? 2 : 1;
-            saveNt(); renderAll();
-          });
-          tools.appendChild(size);
-
-          if (wg.type === 'link') {
-            var ed = el('button', 'wg-btn', '✎');
-            ed.type = 'button'; ed.title = 'Изменить ссылку';
-            ed.addEventListener('click', function () {
-              openTileDialog({ url: wg.url, title: wg.title }, function (v) {
-                wg.url = v.url; wg.title = v.title; saveNt(); renderAll();
-              });
-            });
-            tools.appendChild(ed);
-          }
-
-          var del = el('button', 'wg-btn danger', '✕');
-          del.type = 'button'; del.title = 'Убрать виджет';
-          del.addEventListener('click', function () {
-            NT.widgets.splice(i, 1);
-            saveNt(); renderAll();
-          });
-          tools.appendChild(del);
-
-          head.appendChild(tools);
-          sec.appendChild(head);
-          sec.appendChild(buildWidgetBody(wg));
-
-          /* drag & drop порядка виджетов (в режиме правки) */
-          if (document.body.classList.contains('nt-edit')) sec.draggable = true;
-          sec.addEventListener('dragstart', function (e) {
-            if (!document.body.classList.contains('nt-edit')) return;
-            dragW = { index: i };
-            sec.classList.add('drag-ghost');
-            e.dataTransfer.effectAllowed = 'move';
-            try { e.dataTransfer.setData('text/plain', 'widget'); } catch (err) { /* noop */ }
-          });
-          sec.addEventListener('dragend', function () {
-            dragW = null;
-            sec.classList.remove('drag-ghost');
-          });
-          sec.addEventListener('dragover', function (e) {
-            if (!dragW || dragW.index === i) return;
-            e.preventDefault();
-          });
-          sec.addEventListener('drop', function (e) {
-            if (!dragW || dragW.index === i) return;
-            e.preventDefault();
-            var moved = NT.widgets.splice(dragW.index, 1)[0];
-            NT.widgets.splice(i, 0, moved);
-            dragW = null;
-            saveNt(); renderAll();
-          });
-
-          widgetsBox.appendChild(sec);
-        });
-        document.getElementById('hero').classList.toggle('hidden', NT.showHero === false);
-      }
-
-      /* ---- режим правки ---- */
-      function setEditMode(on) {
-        document.body.classList.toggle('nt-edit', !!on);
-        var editBtn = document.getElementById('editBtn');
-        editBtn.classList.toggle('active', !!on);
-        saveNt();
-        renderAll();
-      }
-
-      /* ================================================================
-         ПАНЕЛЬ КАСТОМИЗАЦИИ
-         ================================================================ */
-      var panel = document.getElementById('customPanel');
-      var pOverlay = document.getElementById('customOverlay');
-
-      function openCustom() {
-        renderFaceCards();
-        panel.classList.add('open');
-        panel.setAttribute('aria-hidden', 'false');
-        pOverlay.classList.add('open');
-      }
-      function closeCustom() {
-        panel.classList.remove('open');
-        panel.setAttribute('aria-hidden', 'true');
-        pOverlay.classList.remove('open');
-        document.getElementById('editBtn').classList.remove('active');
-      }
-      /* карандаш = вход/выход из режима правки (как у флагманов) */
-      document.getElementById('editBtn').addEventListener('click', function () {
-        setEditMode(!document.body.classList.contains('nt-edit'));
-      });
-      document.getElementById('ehCatalog').addEventListener('click', openCustom);
-      document.getElementById('ehDone').addEventListener('click', function () {
-        if (panel.classList.contains('open')) closeCustom();
-        setEditMode(false);
-      });
-
-      function renderFaceCards() {
-        var clockW = NT.widgets.filter(function (w) { return w.type === 'clock'; })[0];
-        var face = clockW ? clockW.face : 'digital';
-        document.querySelectorAll('#faceGrid .face-card').forEach(function (c) {
-          c.classList.toggle('active', c.dataset.face === face);
-        });
-      }
-
-      document.querySelectorAll('#faceGrid .face-card').forEach(function (c) {
-        c.addEventListener('click', function () {
-          var f = c.dataset.face;
-          var clockW = NT.widgets.filter(function (w) { return w.type === 'clock'; })[0];
-          if (!clockW) {
-            clockW = { id: uid(), type: 'clock', size: 2, face: f };
-            NT.widgets.unshift(clockW);
-          } else {
-            clockW.face = f;
-          }
-          saveNt(); renderAll(); renderFaceCards();
-        });
-      });
-
-      document.querySelectorAll('#catalog .cat-chip').forEach(function (chip) {
-        chip.addEventListener('click', function () {
-          var type = chip.dataset.type;
-          var meta = WIDGET_META[type];
-          var wg = { id: uid(), type: type, size: meta.defSize };
-          if (type === 'clock') wg.face = 'digital';
-          if (type === 'note') wg.text = '';
-          NT.widgets.push(wg);
-          saveNt(); renderAll();
-          if (type === 'link') {
-            openTileDialog(null, function (v) {
-              wg.url = v.url;
-              wg.title = v.title;
-              saveNt(); renderAll();
-            }, function () {
-              /* отмена — убираем пустой виджет */
-              var i = NT.widgets.indexOf(wg);
-              if (i >= 0) NT.widgets.splice(i, 1);
-              saveNt(); renderAll();
-            });
-          }
-        });
-      });
-
-      /* тумблеры экрана */
-      var tHero = document.getElementById('tHero');
-      var tDl = document.getElementById('tDl');
-      var tLabels = document.getElementById('tLabels');
-      tHero.checked = NT.showHero !== false;
-      tHero.addEventListener('change', function () {
-        NT.showHero = tHero.checked;
-        saveNt(); renderAll();
-      });
-      tLabels.checked = NT.showTileLabels !== false;
-      tLabels.addEventListener('change', function () {
-        NT.showTileLabels = tLabels.checked;
-        document.body.classList.toggle('no-tile-labels', !tLabels.checked);
-        saveNt();
-      });
-      if (IN_WEB) {
-        document.getElementById('dlToggleRow').hidden = false;
-        tDl.checked = NT.showDl !== false;
-        tDl.addEventListener('change', function () {
-          NT.showDl = tDl.checked;
-          saveNt();
-          document.getElementById('dlCard').hidden = NT.showDl === false;
-        });
-      }
-
-      document.getElementById('btnResetNt').addEventListener('click', function () {
-        NT = ntDefaults();
-        setLS('znewtab', NT);
-        tHero.checked = true;
-        tLabels.checked = true;
-        document.body.classList.remove('no-tile-labels');
-        renderAll(); renderFaceCards();
-      });
-
-      document.getElementById('gear').addEventListener('click', function () {
-        nav('newtab.html?panel=settings', true);
-      });
-      document.getElementById('customClose').addEventListener('click', closeCustom);
-      pOverlay.addEventListener('click', closeCustom);
-
-      /* ================================================================
-         КОНТЕКСТНОЕ МЕНЮ ПЛИТКИ — переименовать/удалить в один клик,
-         даже без режима правки (как у флагманов)
-         ================================================================ */
-      var ctxMenu = document.getElementById('ctxMenu');
-      function closeCtx() { ctxMenu.classList.remove('open'); }
-      function openCtx(x, y, items) {
-        ctxMenu.textContent = '';
-        items.forEach(function (it) {
-          if (it === '-') { ctxMenu.appendChild(el('div', 'ctx-sep')); return; }
-          var b = el('button', 'ctx-item' + (it.danger ? ' danger' : ''), it.label);
-          b.type = 'button';
-          b.setAttribute('role', 'menuitem');
-          b.addEventListener('click', function () { closeCtx(); it.fn(); });
-          ctxMenu.appendChild(b);
-        });
-        ctxMenu.classList.add('open');
-        var r = ctxMenu.getBoundingClientRect();
-        ctxMenu.style.left = Math.max(10, Math.min(x, window.innerWidth - r.width - 10)) + 'px';
-        ctxMenu.style.top = Math.max(10, Math.min(y, window.innerHeight - r.height - 10)) + 'px';
-      }
-      document.addEventListener('contextmenu', function (e) {
-        var host = e.target && e.target.closest ? e.target.closest('.tile-btn[data-ctx]') : null;
-        if (!host || !host.__ctxItems) { closeCtx(); return; }
-        e.preventDefault();
-        openCtx(e.clientX, e.clientY, host.__ctxItems);
-      });
-      document.addEventListener('click', function (e) {
-        if (!ctxMenu.classList.contains('open')) return;
-        if (e.target && e.target.closest && e.target.closest('.ctx-menu')) return;
-        closeCtx();
-      });
-      window.addEventListener('resize', closeCtx);
-      window.addEventListener('blur', closeCtx);
-      /* клик по пустому месту выходит из режима правки (как у флагманов) */
-      document.addEventListener('click', function (e) {
-        if (!document.body.classList.contains('nt-edit')) return;
-        if (panel.classList.contains('open') || pOverlay.classList.contains('open')) return;
-        if (dlgWrap.classList.contains('open')) return;
-        var t = e.target;
-        if (t && t.closest && t.closest('.widget, .corner-tools, .edit-hint, .c-panel, .c-overlay, .dlg-wrap, .ctx-menu')) return;
-        setEditMode(false);
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key !== 'Escape') return;
-        if (ctxMenu.classList.contains('open')) { closeCtx(); return; }
-        if (dlgWrap.classList.contains('open')) { dlgCancel(); return; }
-        if (panel.classList.contains('open')) { closeCustom(); return; }
-        if (document.body.classList.contains('nt-edit')) setEditMode(false);
-      });
-
-      /* ================================================================
-         ДИАЛОГ ССЫЛКИ
-         ================================================================ */
+      /* ---- диалог ссылки ---- */
       var dlgWrap = document.getElementById('dlgWrap');
-      var dlgUrl = document.getElementById('dlgUrl');
-      var dlgName = document.getElementById('dlgName');
-      var dlgCallback = null;
-      var dlgOnCancel = null;
-
-      function openTileDialog(existing, cb, onCancel, focusName) {
-        dlgCallback = cb;
-        dlgOnCancel = onCancel || null;
-        document.getElementById('dlgTitle').textContent = existing ? 'Изменить ссылку' : 'Добавить ссылку';
-        dlgUrl.value = existing ? (existing.url || '') : '';
-        dlgName.value = existing ? (existing.title || '') : '';
-        dlgWrap.classList.add('open');
-        var target = (existing && focusName) ? dlgName : dlgUrl;
-        setTimeout(function () { try { target.focus(); if (target.select) target.select(); } catch (e) { /* noop */ } }, 60);
-      }
-      function dlgCancel() {
-        dlgWrap.classList.remove('open');
-        if (dlgOnCancel) { var f = dlgOnCancel; dlgOnCancel = null; dlgCallback = null; f(); return; }
-        dlgCallback = null;
-      }
-      document.getElementById('dlgCancel').addEventListener('click', dlgCancel);
-      dlgWrap.addEventListener('click', function (e) { if (e.target === dlgWrap) dlgCancel(); });
+      function dlgClose() { dlgWrap.classList.remove('open'); }
+      document.getElementById('dlgCancel').addEventListener('click', dlgClose);
+      dlgWrap.addEventListener('click', function (e) { if (e.target === dlgWrap) dlgClose(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') dlgClose(); });
       document.getElementById('dlgSave').addEventListener('click', function () {
-        var url = normalizeUrl(dlgUrl.value);
-        if (!url) {
-          dlgUrl.focus();
-          dlgUrl.style.boxShadow = '0 0 0 2px #ff453a';
-          setTimeout(function () { dlgUrl.style.boxShadow = ''; }, 1200);
-          return;
-        }
-        var title = String(dlgName.value || '').trim();
-        dlgWrap.classList.remove('open');
-        if (dlgCallback) { dlgCallback({ url: url, title: title }); dlgCallback = null; }
+        var url = normalizeUrl(document.getElementById('dlgUrl').value);
+        if (!url) { document.getElementById('dlgUrl').focus(); return; }
+        var title = String(document.getElementById('dlgName').value || '').trim() || hostOf(url);
+        var st = getSettings();
+        st.quickLinks = links();
+        st.quickLinks.push({ title: title, url: url });
+        saveSettings(st);
+        dlgClose();
+        renderTiles();
       });
-      dlgUrl.addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('dlgSave').click(); });
-      dlgName.addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('dlgSave').click(); });
+      document.getElementById('dlgUrl').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('dlgSave').click(); });
+      document.getElementById('dlgName').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('dlgSave').click(); });
 
-      /* ================================================================
-         СКАЧИВАНИЕ СБОРОК (только веб)
-         ================================================================ */
+      /* ---- шестерёнка: настройки ---- */
+      document.getElementById('gear').addEventListener('click', function () {
+        if (IN_WEB) {
+          /* настройки живут в полном интерфейсе хоста */
+          try { window.parent.postMessage({ __zaeranav: true, url: 'aero://settings', tab: TAB_ID }, '*'); } catch (e) { /* noop */ }
+        } else {
+          /* автономная веб-страница: ведём в полноценное веб-демо */
+          window.location.href = '/aero/';
+        }
+      });
+
+      /* ---- сообщения хоста ---- */
+      window.addEventListener('message', function (e) {
+        if (!e.data || typeof e.data !== 'object') return;
+        if (window.parent !== window && e.source !== window.parent) return;
+        if (e.source === window) return;
+        if (e.data.__zaeratheme === 'dark' || e.data.__zaeratheme === 'light') {
+          document.documentElement.dataset.theme = e.data.__zaeratheme;
+        }
+        if (e.data.__zaerawallpaper) {
+          var st = getSettings();
+          st.wallpaper = e.data.__zaerawallpaper;
+          saveSettings(st);
+          applyWallpaper();
+        }
+      });
+
+      /* ---- карточка скачивания (только веб) ---- */
       if (IN_WEB) {
         fetch('/api/desktop-builds')
           .then(function (r) { return r.json(); })
           .then(function (j) {
             var builds = (j && Array.isArray(j.builds)) ? j.builds : [];
-            if (!builds.length || NT.showDl === false) return;
+            if (!builds.length) return;
             var card = document.getElementById('dlCard');
             card.hidden = false;
             card.textContent = '';
@@ -2031,71 +516,6 @@
           })
           .catch(function () { /* нет сборок — карточку не показываем */ });
       }
-
-      /* ================================================================
-         СООБЩЕНИЯ ХОСТА И СИНХРОНИЗАЦИЯ
-         ================================================================ */
-      window.addEventListener('message', function (e) {
-        if (!e.data || typeof e.data !== 'object') return;
-        if (window.parent !== window && e.source !== window.parent) return;
-        if (e.source === window) return;
-        if (e.data.__zaeratheme === 'dark' || e.data.__zaeratheme === 'light') {
-          document.documentElement.dataset.theme = e.data.__zaeratheme;
-        }
-        if (e.data.__zaeraengine) {
-          if (ENGINES.some(function (e2) { return e2.key === e.data.__zaeraengine; })) {
-            settings.engine = e.data.__zaeraengine;
-            setLS('zsettings', settings);
-          }
-        }
-        if (e.data.__zaerawallpaper && WALLPAPERS.indexOf(e.data.__zaerawallpaper) >= 0) {
-          settings.wallpaper = e.data.__zaerawallpaper;
-          WALLPAPERS.forEach(function (w) { document.body.classList.remove('wp-' + w); });
-          document.body.classList.remove('wp-custom');
-          if (e.data.__zaerawallpaper === 'custom') {
-            var img = getLS('zwallpaper', null);
-            if (typeof img === 'string' && img.indexOf('data:image') === 0) {
-              document.body.style.setProperty('--wp-img', 'url("' + img + '")');
-              document.body.classList.add('wp-custom');
-            } else {
-              document.body.classList.add('wp-sunset');
-            }
-          } else {
-            document.body.classList.add('wp-' + e.data.__zaerawallpaper);
-          }
-        }
-        if (e.data.__zaeraaccent && ACCENTS.indexOf(e.data.__zaeraaccent) >= 0) {
-          settings.accent = e.data.__zaeraaccent;
-          document.documentElement.dataset.accent = e.data.__zaeraaccent;
-        }
-        if (typeof e.data.__zaeraanim === 'boolean') {
-          document.body.classList.toggle('no-anim', !e.data.__zaeraanim);
-        }
-        /* живая статистика защиты */
-        if (typeof e.data.__zaerablocked === 'number') blockedCount = e.data.__zaerablocked;
-        if (typeof e.data.__zaeraadblock === 'boolean') {
-          settings.adBlock = e.data.__zaeraadblock;
-          setLS('zsettings', settings);
-        }
-        if (typeof e.data.__zaerablocked === 'number' || typeof e.data.__zaeraadblock === 'boolean') {
-          if (NT.widgets.some(function (w) { return w.type === 'protect'; })) renderAll();
-        }
-      });
-
-      /* Хост изменил настройки (storage-событие из другого документа) —
-         обновляем состояние защиты/поиска. */
-      window.addEventListener('storage', function (e) {
-        if (e.key === 'zsettings') {
-          var st = getLS('zsettings', {}) || {};
-          var prot = NT.widgets.some(function (w) { return w.type === 'protect'; });
-          var search = NT.widgets.some(function (w) { return w.type === 'search'; });
-          if (st.engine && st.engine !== settings.engine) settings.engine = st.engine;
-          if (prot || search) renderAll();
-        }
-      });
-
-      /* ---- первый рендер ---- */
-      renderAll();
     })();
   </script>
 </body>

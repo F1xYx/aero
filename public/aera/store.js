@@ -15,19 +15,10 @@
     suggestHistory: true,
     keepHistory: true,
     clearOnExit: false,
-    homeOnStartup: true,      // true: show widget page on launch; false: restore last session
+    homeOnStartup: true,      // true: show start page on launch; false: restore last session
     wallpaper: 'aurora',      // preset id | 'custom'
     wallpaperUrl: '',
     wallpaperDim: 20,         // 0..60 % darkening
-    columns: 4,               // widget grid columns
-    widgets: {
-      order: ['clock', 'weather', 'links', 'calendar'],
-      sizes: { clock: 'M', weather: 'S', links: 'L', calendar: 'S' },
-      hidden: {},
-      clock: { analog: true, seconds: false, format: '24h' },
-      weather: { city: 'Москва', lat: 55.7558, lon: 37.6173, units: 'c' },
-      calendar: { showWeekNumbers: false }
-    },
     quickLinks: [
       { title: 'YouTube', url: 'https://www.youtube.com' },
       { title: 'Google', url: 'https://www.google.com' },

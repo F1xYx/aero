@@ -73,7 +73,7 @@
     },
     {
       id: 'general', name: 'Общие',
-      svg: '<g stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="8" cy="8" r="2.2"/><path d="M8 2.4v1.5M8 12.1v1.5M2.4 8h1.5M12.1 8h1.5M4.1 4.1l1.06 1.06M10.84 10.84l1.06 1.06M11.9 4.1l-1.06 1.06M5.16 10.84L4.1 11.9"/></g>'
+      svg: '<g transform="scale(0.6667)" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h.1a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></g>'
     },
     {
       id: 'privacy', name: 'Приватность',
@@ -86,7 +86,7 @@
   ];
 
   var SECTION_HEADS = {
-    start:    { t: 'Стартовая страница', s: 'Фон, виджеты и быстрый доступ на новой вкладке' },
+    start:    { t: 'Стартовая страница', s: 'Фон и быстрый доступ на новой вкладке' },
     look:     { t: 'Оформление', s: 'Тема, акцент и эффекты' },
     search:   { t: 'Поиск', s: 'Поисковая система и подсказки' },
     general:  { t: 'Общие', s: 'Запуск и вкладки' },
@@ -248,7 +248,7 @@
     /* ─── Общие ─── */
     general: function (sec, rerender) {
       var g1 = group('Запуск');
-      g1.body.appendChild(row('Открывать новую вкладку при запуске', 'Страница виджетов вместо восстановления сессии', toggleBtn(Store.get().homeOnStartup !== false, function (v) { Store.update({ homeOnStartup: v }); })));
+      g1.body.appendChild(row('Открывать новую вкладку при запуске', 'Стартовая страница вместо восстановления сессии', toggleBtn(Store.get().homeOnStartup !== false, function (v) { Store.update({ homeOnStartup: v }); })));
       sec.appendChild(g1.wrap);
 
       var g2 = group('Вкладки');
