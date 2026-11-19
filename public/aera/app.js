@@ -36,7 +36,7 @@
   function isInternalUrl(u) { return /^(aero|aera):\/\//i.test(u || ''); }
 
   window.AeroUI = {
-    version: '2.3.16',
+    version: '2.3.20',
     toast: toast,
     createTab: createTab,
     navigateActive: function (url) {
@@ -207,7 +207,24 @@
       onSettingsChanged: function () { Store.applyTheme(); applyCompact(); }
     };
     if (tab.kind === 'newtab') window.AeroNewTab.render(tab.pageEl, ctx);
-    else if (tab.kind === 'settings') window.AeroSettings.render(tab.pageEl, ctx);
+    else if (tab.kind === 'settings') {
+      var m = /section=([a-zA-Z]+)/.exec(tab.url || '');
+      if (m) ctx.section = m[1];
+      /* настройки меняют вид открытых стартовых страниц на лету */
+      ctx.onSettingsChanged = function () {
+        Store.applyTheme();
+        applyCompact();
+        state.tabs.forEach(function (t) {
+          if (t.kind === 'newtab' && t.pageEl) {
+            window.AeroNewTab.render(t.pageEl, {
+              navigate: function (u) { tabNavigate(t, u); },
+              onSettingsChanged: function () { Store.applyTheme(); applyCompact(); }
+            });
+          }
+        });
+      };
+      window.AeroSettings.render(tab.pageEl, ctx);
+    }
   }
 
   function setFaviconSpan(span, tab) {
@@ -287,6 +304,8 @@
   function tabNavigate(tab, url, opts) {
     opts = opts || {};
     if (!url) return;
+    /* навигация из омнибокса/ссылок закрывает обзор вкладок */
+    closeOverview();
     if (isInternalUrl(url)) {
       tab.kind = url.indexOf('settings') !== -1 ? 'settings' : 'newtab';
       tab.url = url;
@@ -429,7 +448,7 @@
     } else if (t.kind === 'settings') {
       addressbar.classList.add('webpage');
       addressbar.classList.remove('om-newtab');
-      omnibox.value = 'aero://settings';
+      omnibox.value = t.url || 'aero://settings';
       omnibox.placeholder = '';
     } else {
       addressbar.classList.add('webpage');
@@ -616,6 +635,10 @@
         var img = document.createElement('img');
         img.src = t.favicon; img.alt = '';
         fav.appendChild(img);
+      } else if (t.kind === 'newtab') {
+        fav.textContent = '✦';
+      } else if (t.kind === 'settings') {
+        fav.textContent = '⚙';
       } else {
         fav.textContent = (t.title || '#')[0].toUpperCase();
       }
@@ -725,14 +748,10 @@
   /* ═══ window controls ═══ */
   function wireWindowControls() {
     var min = $('wb-min'), max = $('wb-max'), close = $('wb-close');
-    var tlc = $('tl-close'), tlm = $('tl-min'), tlx = $('tl-max');
     if (DESKTOP) {
       min.addEventListener('click', function () { window.electronAPI.minimize(); });
       max.addEventListener('click', function () { window.electronAPI.maximizeToggle(); });
       close.addEventListener('click', function () { window.electronAPI.close(); });
-      tlc.addEventListener('click', function () { window.electronAPI.close(); });
-      tlm.addEventListener('click', function () { window.electronAPI.minimize(); });
-      tlx.addEventListener('click', function () { window.electronAPI.maximizeToggle(); });
       window.electronAPI.onWindowState(function (st) {
         $('app').classList.toggle('maximized', !!st.maximized);
       });
@@ -740,7 +759,7 @@
         if (st) $('app').classList.toggle('maximized', !!st.maximized);
       }).catch(function () {});
     } else {
-      [min, max, close, tlc, tlm, tlx].forEach(function (b) { b.style.display = 'none'; });
+      [min, max, close].forEach(function (b) { b.style.display = 'none'; });
     }
   }
 
@@ -808,7 +827,7 @@
 
     if (DESKTOP && window.electronAPI.version) {
       window.electronAPI.version().then(function (v) {
-        window.AeroUI.version = v || '2.3.16';
+        window.AeroUI.version = v || '2.3.20';
       }).catch(function () {});
     }
 

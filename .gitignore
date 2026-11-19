@@ -56,8 +56,11 @@ zbrowser-desktop/dist/
 zbrowser-desktop/node_modules/
 tool-results/
 
-# Browser build artifacts & large binaries
-download/*.exe
+# Old releases stay out of git (archive/ on disk only); the CURRENT release
+# EXEs are deliberately committed — sandbox resets wiped untracked download/
+# EXEs three times, and 2.3.15 never reached users because of that. EXEs are
+# 75-87 MB, under the GitHub 100 MB hard limit, and re-shipping them is the
+# whole point of this folder.
 download/archive/
 upload/
 backups-VERSIONS.md

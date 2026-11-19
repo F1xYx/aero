@@ -23,7 +23,7 @@ function createWindow() {
     minHeight: 600,
     show: false,
     frame: false,
-    backgroundColor: '#fbe9d7',
+    backgroundColor: '#161620',
     icon: iconPath(),
     title: 'Aero',
     webPreferences: {

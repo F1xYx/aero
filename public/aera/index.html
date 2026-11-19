@@ -4,25 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aero</title>
+  <link rel="icon" type="image/png" href="icon.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div id="app">
 
-    <!-- ══════════════ Titlebar: traffic lights + tab strip + windows buttons ══════════════ -->
+    <!-- ══════════════ Titlebar: tab strip (new-tab button hugs the last tab) + windows buttons ══════════════ -->
     <header id="titlebar">
-      <div class="traffic-lights" aria-hidden="true">
-        <button id="tl-close" class="tl tl-close" tabindex="-1">
-          <svg viewBox="0 0 10 10"><path d="M2.5 2.5 L7.5 7.5 M7.5 2.5 L2.5 7.5"/></svg>
-        </button>
-        <button id="tl-min" class="tl tl-min" tabindex="-1">
-          <svg viewBox="0 0 10 10"><path d="M2 5 L8 5"/></svg>
-        </button>
-        <button id="tl-max" class="tl tl-max" tabindex="-1">
-          <svg viewBox="0 0 10 10"><path d="M2.8 2.8 L2.8 7.2 L7.2 7.2 L7.2 2.8 Z"/></svg>
-        </button>
-      </div>
-
       <div id="tabstrip" role="tablist" aria-label="Вкладки"></div>
 
       <button id="btn-newtab" class="tbtn" title="Новая вкладка (Ctrl+T)" aria-label="Новая вкладка">
@@ -78,7 +67,7 @@
           <svg viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="4.6" height="4.6" rx="1.2" stroke-width="1.3"/><rect x="8.9" y="2.5" width="4.6" height="4.6" rx="1.2" stroke-width="1.3"/><rect x="2.5" y="8.9" width="4.6" height="4.6" rx="1.2" stroke-width="1.3"/><rect x="8.9" y="8.9" width="4.6" height="4.6" rx="1.2" stroke-width="1.3"/></svg>
         </button>
         <button id="btn-settings" class="tbtn" title="Настройки (Ctrl+,)" aria-label="Настройки">
-          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.1" stroke-width="1.4"/><path d="M8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M12.4 3.6l-1.2 1.2M4.8 11.2l-1.2 1.2" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <svg viewBox="0 0 16 16" style="fill:currentColor;stroke:none"><path fill-rule="evenodd" d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
         </button>
       </div>
     </nav>
