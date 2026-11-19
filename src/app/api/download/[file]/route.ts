@@ -20,7 +20,7 @@ function decodeSegment(value: string): string {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ file: string }> }
 ) {
   const { file } = await params;
@@ -60,18 +60,64 @@ export async function GET(
     );
   }
 
+  const baseHeaders: Record<string, string> = {
+    "Content-Type": "application/octet-stream",
+    "Content-Disposition": `attachment; filename="${fileName}"`,
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+    // Advertise resume support: interrupted downloads continue instead of
+    // restarting from byte 0.
+    "Accept-Ranges": "bytes",
+  };
+
   // fs.createReadStream -> web ReadableStream so it can be used as a Response body.
-  const nodeStream = createReadStream(filePath);
+  // 1 MiB chunks keep syscall/GC overhead low on slow client links.
+  const rangeHeader = request.headers.get("range");
+  if (rangeHeader) {
+    const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim());
+    let start = 0;
+    let end = info.size - 1;
+    if (match) {
+      if (match[1]) start = Number.parseInt(match[1], 10);
+      if (match[2]) end = Number.parseInt(match[2], 10);
+    }
+    if (
+      !match ||
+      Number.isNaN(start) ||
+      Number.isNaN(end) ||
+      start > end ||
+      start >= info.size ||
+      end >= info.size
+    ) {
+      return new Response(null, {
+        status: 416,
+        headers: { ...baseHeaders, "Content-Range": `bytes */${info.size}` },
+      });
+    }
+    const rangeStream = createReadStream(filePath, {
+      start,
+      end,
+      highWaterMark: 1 << 20,
+    });
+    const rangeWeb = Readable.toWeb(rangeStream) as unknown as ReadableStream<Uint8Array>;
+    return new Response(rangeWeb, {
+      status: 206,
+      headers: {
+        ...baseHeaders,
+        "Content-Length": String(end - start + 1),
+        "Content-Range": `bytes ${start}-${end}/${info.size}`,
+      },
+    });
+  }
+
+  const nodeStream = createReadStream(filePath, { highWaterMark: 1 << 20 });
   const webStream = Readable.toWeb(nodeStream) as unknown as ReadableStream<Uint8Array>;
 
   return new Response(webStream, {
     status: 200,
     headers: {
-      "Content-Type": "application/octet-stream",
-      "Content-Disposition": `attachment; filename="${fileName}"`,
+      ...baseHeaders,
       "Content-Length": String(info.size),
-      "Cache-Control": "no-store",
-      "X-Content-Type-Options": "nosniff",
     },
   });
 }

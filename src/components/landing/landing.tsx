@@ -36,7 +36,7 @@ import {
 import { DesktopDownloads } from "@/components/desktop-downloads";
 import { GlassWindow } from "@/components/landing/browser-mockups";
 
-const VERSION = "2.3.16";
+const VERSION = "2.3.17";
 
 const NAV_LINKS = [
   { href: "#features", label: "Возможности" },
@@ -640,8 +640,13 @@ function DownloadSection() {
 
 const CHANGELOG = [
   {
-    version: "2.3.16",
+    version: "2.3.17",
     current: true,
+    text: "Быстрее качается: установщик сжат по-настоящему (LZMA) — файл меньше почти на треть, а при обрыве связи загрузка продолжается с места обрыва, а не с нуля.",
+  },
+  {
+    version: "2.3.16",
+    current: false,
     text: "Сборки снова доступны: установщик и портативная версия пересобраны и подписаны свежим сертификатом «Aero Team». Сертификат доверия по-прежнему встроен — отдельно качать ничего не нужно.",
   },
   {

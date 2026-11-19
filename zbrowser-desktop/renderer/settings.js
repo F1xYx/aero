@@ -255,7 +255,7 @@
           card.appendChild(logo);
           var info = el('div');
           info.appendChild(el('div', 'about-name', 'Aero'));
-          info.appendChild(el('div', 'about-ver', 'Версия ' + (window.AeroUI && window.AeroUI.version ? window.AeroUI.version : '2.3.16')));
+          info.appendChild(el('div', 'about-ver', 'Версия ' + (window.AeroUI && window.AeroUI.version ? window.AeroUI.version : '2.3.17')));
           info.appendChild(el('div', 'about-line',
             'Интерфейс в стиле Safari 27 (Golden Gate / macOS Tahoe).\n' +
             'Движок: ' + (navigator.userAgent.indexOf('Firefox') !== -1 ? 'Gecko' : 'Chromium') +
