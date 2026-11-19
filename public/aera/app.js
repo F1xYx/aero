@@ -207,7 +207,24 @@
       onSettingsChanged: function () { Store.applyTheme(); applyCompact(); }
     };
     if (tab.kind === 'newtab') window.AeroNewTab.render(tab.pageEl, ctx);
-    else if (tab.kind === 'settings') window.AeroSettings.render(tab.pageEl, ctx);
+    else if (tab.kind === 'settings') {
+      var m = /section=([a-zA-Z]+)/.exec(tab.url || '');
+      if (m) ctx.section = m[1];
+      /* настройки меняют вид открытых стартовых страниц на лету */
+      ctx.onSettingsChanged = function () {
+        Store.applyTheme();
+        applyCompact();
+        state.tabs.forEach(function (t) {
+          if (t.kind === 'newtab' && t.pageEl) {
+            window.AeroNewTab.render(t.pageEl, {
+              navigate: function (u) { tabNavigate(t, u); },
+              onSettingsChanged: function () { Store.applyTheme(); applyCompact(); }
+            });
+          }
+        });
+      };
+      window.AeroSettings.render(tab.pageEl, ctx);
+    }
   }
 
   function setFaviconSpan(span, tab) {
@@ -429,7 +446,7 @@
     } else if (t.kind === 'settings') {
       addressbar.classList.add('webpage');
       addressbar.classList.remove('om-newtab');
-      omnibox.value = 'aero://settings';
+      omnibox.value = t.url || 'aero://settings';
       omnibox.placeholder = '';
     } else {
       addressbar.classList.add('webpage');

@@ -333,18 +333,21 @@
       function renderWidgets(animate) {
         grid.innerHTML = '';
         var c = Store.get();
+        var visibleCount = 0;
         c.widgets.order.forEach(function (key, i) {
           if (c.widgets.hidden[key]) return;
+          visibleCount++;
           var card = el('div', 'widget ' + (SIZE_CLASS[c.widgets.sizes[key]] || 'wS'));
           /* каскад появления только при первом рендере страницы */
           if (animate) { card.style.animationDelay = (0.05 + i * 0.05) + 's'; }
           else { card.style.animation = 'none'; }
           card.dataset.key = key;
 
-          /* edit-mode controls */
+          /* edit-mode controls: size cycle + hide; порядок — перетаскиванием */
           var ctrls = el('div', 'widget-controls');
           var bSize = el('button', 'wc-btn wc-size', c.widgets.sizes[key] || 'S');
-          bSize.title = 'Размер';
+          bSize.type = 'button';
+          bSize.title = 'Размер (Мал. → Сред. → Больш.)';
           bSize.addEventListener('click', function () {
             var s = Store.get();
             var order = ['S', 'M', 'L'];
@@ -352,23 +355,8 @@
             Store.save();
             renderWidgets();
           });
-          var bUp = el('button', 'wc-btn');
-          bUp.appendChild(svg('M8 3 L13 8 L10.5 8 L10.5 13 L5.5 13 L5.5 8 L3 8 Z', { fill: 'currentColor', 'stroke-width': 0 }));
-          bUp.title = 'Переместить раньше';
-          bUp.addEventListener('click', function () {
-            var s = Store.get();
-            var idx = s.widgets.order.indexOf(key);
-            if (idx > 0) { s.widgets.order.splice(idx, 1); s.widgets.order.splice(idx - 1, 0, key); Store.save(); renderWidgets(); }
-          });
-          var bDown = el('button', 'wc-btn');
-          bDown.appendChild(svg('M8 13 L3 8 L5.5 8 L5.5 3 L10.5 3 L10.5 8 L13 8 Z', { fill: 'currentColor', 'stroke-width': 0 }));
-          bDown.title = 'Переместить позже';
-          bDown.addEventListener('click', function () {
-            var s = Store.get();
-            var idx = s.widgets.order.indexOf(key);
-            if (idx < s.widgets.order.length - 1) { s.widgets.order.splice(idx, 1); s.widgets.order.splice(idx + 1, 0, key); Store.save(); renderWidgets(); }
-          });
           var bHide = el('button', 'wc-btn');
+          bHide.type = 'button';
           bHide.appendChild(svg('M2.5 2.5 L13.5 13.5 M13.5 2.5 L2.5 13.5', { 'stroke-width': 1.7 }));
           bHide.title = 'Скрыть виджет';
           bHide.addEventListener('click', function () {
@@ -377,7 +365,7 @@
             Store.save();
             renderWidgets();
           });
-          ctrls.appendChild(bSize); ctrls.appendChild(bUp); ctrls.appendChild(bDown); ctrls.appendChild(bHide);
+          ctrls.appendChild(bSize); ctrls.appendChild(bHide);
           card.appendChild(ctrls);
 
           if (key === 'clock') buildClock(card, c.widgets);
@@ -409,41 +397,43 @@
 
           grid.appendChild(card);
         });
+        if (visibleCount === 0) {
+          var empty = el('div', 'nt-empty');
+          empty.appendChild(el('div', 'nt-empty-title', 'Все виджеты скрыты'));
+          empty.appendChild(el('div', 'nt-empty-sub', 'Нажмите «Настроить», чтобы вернуть их на экран'));
+          grid.appendChild(empty);
+        }
       }
       renderWidgets(true);
 
-      /* tools row + dedicated edit bar.
+      /* tools row + floating edit bar.
          В обычном режиме видна строка инструментов; при редактировании она
-         сменяется единой панелью редактирования с явным выходом. */
+         сменяется плавающей панелью редактирования внизу экрана. */
       var tools = el('div', 'newtab-tools');
       var bEdit = el('button', 'nt-btn');
+      bEdit.type = 'button';
       bEdit.appendChild(svg('M11 2.5 L13.5 5 L6 12.5 L3 13 L3.5 10 Z', { 'stroke-width': 1.4, 'stroke-linejoin': 'round' }));
       bEdit.appendChild(el('span', null, 'Изменить'));
       var bCfg = el('button', 'nt-btn');
+      bCfg.type = 'button';
       bCfg.appendChild(svg('M8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M12.4 3.6l-1.2 1.2M4.8 11.2l-1.2 1.2', { 'stroke-width': 1.4, 'stroke-linecap': 'round' }));
-      bCfg.appendChild(el('span', null, 'Настройки виджетов'));
-      bCfg.addEventListener('click', function () {
-        window.AeroModal.open('Настройки виджетов', function (body) {
-          window.AeroWidgetsSettings.render(body, { refresh: function () { refresh(); } });
-        });
-      });
+      bCfg.appendChild(el('span', null, 'Настроить'));
+      bCfg.addEventListener('click', function () { navigate('aero://settings?section=start'); });
       tools.appendChild(bEdit);
       tools.appendChild(bCfg);
       inner.appendChild(tools);
 
       var editBar = el('div', 'edit-bar');
       editBar.style.display = 'none';
-      editBar.appendChild(el('span', 'eb-title', 'Редактирование экрана'));
-      editBar.appendChild(el('span', 'eb-hint', 'Перетаскивайте виджеты, меняйте размер кнопкой с буквой, скрывайте лишнее крестиком'));
+      editBar.appendChild(el('span', 'eb-title', 'Редактирование'));
+      editBar.appendChild(el('span', 'eb-hint', 'Перетаскивайте карточки, меняйте размер кнопкой с буквой, скрывайте лишнее крестиком'));
       var bWid = el('button', 'nt-btn');
+      bWid.type = 'button';
       bWid.appendChild(svg('M2.4 2.4h4.7v4.7H2.4zM8.9 2.4h4.7v4.7H8.9zM2.4 8.9h4.7v4.7H2.4zM8.9 8.9h4.7v4.7H8.9z', { fill: 'currentColor', 'stroke-width': 0 }));
-      bWid.appendChild(el('span', null, 'Виджеты'));
-      bWid.addEventListener('click', function () {
-        window.AeroModal.open('Настройки виджетов', function (body) {
-          window.AeroWidgetsSettings.render(body, { refresh: function () { refresh(); } });
-        });
-      });
+      bWid.appendChild(el('span', null, 'Настроить'));
+      bWid.addEventListener('click', function () { navigate('aero://settings?section=start'); });
       var bDone = el('button', 'nt-btn primary');
+      bDone.type = 'button';
       bDone.appendChild(el('span', null, 'Готово'));
       bDone.addEventListener('click', function () { setEditMode(false); });
       editBar.appendChild(bWid);
@@ -466,17 +456,15 @@
     }
   };
 
-  /* ═══════════ Widget settings (shared: modal + settings page) ═══════════ */
-  /* Общий выбор фона стартового экрана (используется в настройках виджетов
-     и на вкладке «Оформление» страницы настроек). */
+  /* ═══════════ Wallpaper picker (общий) ═══════════ */
   window.AeroWallpaperPicker = {
     render: function (root, opts) {
       opts = opts || {};
       var refresh = opts.refresh || function () {};
       var c = Store.get();
 
-      if (opts.title !== false) root.appendChild(el('h2', null, 'Фон'));
       var wpGrid = el('div', 'wp-grid');
+      wpGrid.style.margin = '14px 16px 6px';
       WALLPAPERS.forEach(function (p) {
         var b = el('button', 'wp-swatch' + (c.wallpaper === p.id ? ' sel' : ''));
         b.type = 'button';
@@ -485,13 +473,11 @@
         b.appendChild(el('span', 'wp-name', p.name));
         b.addEventListener('click', function () {
           Store.update({ wallpaper: p.id });
-          wpGrid.querySelectorAll('.wp-swatch').forEach(function (x) { x.classList.remove('sel'); });
-          b.classList.add('sel');
           refresh();
         });
         wpGrid.appendChild(b);
       });
-      /* custom */
+      /* custom wallpaper */
       var cb = el('button', 'wp-swatch' + (c.wallpaper === 'custom' ? ' sel' : ''));
       cb.type = 'button';
       var cp = el('div', 'wp-prev');
@@ -512,21 +498,18 @@
           body.appendChild(row);
           var actions = el('div', 'wp-modal-actions');
           var bClear = el('button', 'nt-btn', 'Сбросить');
+          bClear.type = 'button';
           bClear.addEventListener('click', function () {
             Store.update({ wallpaper: 'aurora', wallpaperUrl: '' });
             close();
             refresh();
-            root.innerHTML = '';
-            window.AeroWallpaperPicker.render(root, opts);
           });
           var bOk = el('button', 'nt-btn primary', 'Применить');
+          bOk.type = 'button';
           bOk.addEventListener('click', function () {
-            var url = uIn.value.trim();
-            Store.update({ wallpaper: 'custom', wallpaperUrl: url });
+            Store.update({ wallpaper: 'custom', wallpaperUrl: uIn.value.trim() });
             close();
             refresh();
-            root.innerHTML = '';
-            window.AeroWallpaperPicker.render(root, opts);
           });
           actions.appendChild(bClear);
           actions.appendChild(bOk);
@@ -536,18 +519,46 @@
       wpGrid.appendChild(cb);
       root.appendChild(wpGrid);
 
-      var dimRow = el('div', 'field-row');
-      var dimL = el('div');
-      dimL.appendChild(el('div', 'field-label', 'Затемнение фона'));
-      dimRow.appendChild(dimL);
+      var dimRow = el('div', 'wp-dim-row');
+      dimRow.appendChild(el('span', 'wp-dim-label', 'Затемнение фона'));
       var dimR = el('input');
       dimR.type = 'range'; dimR.min = '0'; dimR.max = '60'; dimR.value = String(c.wallpaperDim || 20);
       dimR.style.width = '150px';
+      dimR.setAttribute('aria-label', 'Затемнение фона');
       dimR.addEventListener('change', function () { Store.update({ wallpaperDim: Number(dimR.value) }); refresh(); });
       dimRow.appendChild(dimR);
       root.appendChild(dimRow);
     }
   };
+
+  /* ═══════════ Настройки стартовой страницы (раздел «Стартовая») ═══════════
+     Простые сгруппированные строки: фон, раскладка, виджеты, быстрый доступ. */
+  function mkToggle(on, cb) {
+    var t = el('button', 'tgl' + (on ? ' on' : ''));
+    t.type = 'button';
+    t.setAttribute('role', 'switch');
+    t.setAttribute('aria-checked', on ? 'true' : 'false');
+    t.addEventListener('click', function () {
+      t.classList.toggle('on');
+      t.setAttribute('aria-checked', t.classList.contains('on') ? 'true' : 'false');
+      cb(t.classList.contains('on'));
+    });
+    return t;
+  }
+  function mkSeg(options, current, cb) {
+    var s = el('div', 'seg');
+    options.forEach(function (o) {
+      var b = el('button', o.value === current ? 'on' : '', o.label);
+      b.type = 'button';
+      b.addEventListener('click', function () {
+        s.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        cb(o.value);
+      });
+      s.appendChild(b);
+    });
+    return s;
+  }
 
   window.AeroWidgetsSettings = {
     render: function (root, opts) {
@@ -555,144 +566,113 @@
       var refresh = opts.refresh || function () {};
       var c = Store.get();
 
-      window.AeroWallpaperPicker.render(root, opts);
+      function mkGroup(title) {
+        var w = el('div');
+        if (title) w.appendChild(el('div', 'sc-title', title));
+        var b = el('div', 'sc-group');
+        w.appendChild(b);
+        root.appendChild(w);
+        return b;
+      }
 
-      /* — Раскладка — */
-      root.appendChild(el('h2', null, 'Раскладка'));
-      var colRow = el('div', 'field-row');
-      var colL = el('div');
-      colL.appendChild(el('div', 'field-label', 'Колонок в сетке'));
+      /* — Фон — */
+      var gWp = mkGroup('Фон');
+      window.AeroWallpaperPicker.render(gWp, { refresh: refresh });
+
+      /* — Раскладка и виджеты — */
+      var gW = mkGroup('Виджеты');
+      var colRow = el('div', 'sc-row');
+      var colL = el('div', 'sc-main');
+      colL.appendChild(el('div', 'sc-label', 'Колонок в сетке'));
+      colL.appendChild(el('div', 'sc-sub', 'Сколько карточек в одном ряду'));
       colRow.appendChild(colL);
-      var seg = el('div', 'seg');
-      [2, 3, 4, 5, 6].forEach(function (n) {
-        var b = el('button', (c.columns === n ? 'on' : ''), String(n));
-        b.addEventListener('click', function () {
-          Store.update({ columns: n });
-          seg.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
-          b.classList.add('on');
-          refresh();
-        });
-        seg.appendChild(b);
-      });
-      colRow.appendChild(seg);
-      root.appendChild(colRow);
+      colRow.appendChild(mkSeg([2, 3, 4, 5, 6].map(function (n) { return { value: String(n), label: String(n) }; }), String(c.columns || 4), function (v) {
+        Store.update({ columns: Number(v) });
+        refresh();
+      }));
+      gW.appendChild(colRow);
 
-      /* — Виджеты — */
-      root.appendChild(el('h2', null, 'Виджеты'));
       c.widgets.order.forEach(function (key) {
         var meta = WIDGET_META[key] || { name: key, icon: '▪️' };
-        var row = el('div', 'ws-row');
-
-        var icon = el('div', 'ws-icon', meta.icon);
-        row.appendChild(icon);
-
-        var main = el('div', 'ws-main');
-        main.appendChild(el('div', 'ws-name', meta.name));
-        var subTxt = c.widgets.hidden[key] ? 'Скрыт' : SIZE_LABEL[c.widgets.sizes[key] || 'S'];
+        var r = el('div', 'sc-row');
+        r.appendChild(el('div', 'ws-icon', meta.icon));
+        var main = el('div', 'sc-main');
+        main.appendChild(el('div', 'sc-label', meta.name));
+        var subTxt = c.widgets.hidden[key] ? 'Скрыт' : 'Показан · ' + SIZE_LABEL[c.widgets.sizes[key] || 'S'];
         if (key === 'weather') subTxt += ' · ' + c.widgets.weather.city;
         if (key === 'clock') subTxt += ' · ' + (c.widgets.clock.format === '24h' ? '24 ч' : '12 ч') + (c.widgets.clock.seconds ? ' · сек' : '');
-        main.appendChild(el('div', 'ws-sub', subTxt));
-        row.appendChild(main);
+        main.appendChild(el('div', 'sc-sub', subTxt));
+        r.appendChild(main);
 
-        var acts = el('div', 'ws-actions');
-        var bSize = el('button', 'ws-btn size', c.widgets.sizes[key] || 'S');
-        bSize.title = 'Размер (Мал./Сред./Больш.)';
-        bSize.addEventListener('click', function () {
+        var acts = el('div', 'sc-actions');
+        acts.appendChild(mkSeg([
+          { value: 'S', label: 'М' },
+          { value: 'M', label: 'С' },
+          { value: 'L', label: 'Б' }
+        ], c.widgets.sizes[key] || 'S', function (v) {
           var s = Store.get();
-          var order = ['S', 'M', 'L'];
-          s.widgets.sizes[key] = order[(order.indexOf(s.widgets.sizes[key] || 'S') + 1) % 3];
+          s.widgets.sizes[key] = v;
           Store.save();
-          rerender();
-        });
-        acts.appendChild(bSize);
-
-        var bUp = el('button', 'ws-btn');
-        bUp.appendChild(svg('M8 3 L3 8 L6 8 L6 13 L10 13 L10 8 L13 8 Z', { fill: 'currentColor', 'stroke-width': 0 }));
-        bUp.title = 'Выше';
-        bUp.addEventListener('click', function () {
+          refresh();
+        }));
+        if (key === 'clock' || key === 'weather') {
+          var bGear = el('button', 'ws-btn');
+          bGear.type = 'button';
+          bGear.appendChild(svg('M8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M12.4 3.6l-1.2 1.2M4.8 11.2l-1.2 1.2', { 'stroke-width': 1.4, 'stroke-linecap': 'round' }));
+          bGear.title = 'Настройки виджета';
+          bGear.setAttribute('aria-label', 'Настройки: ' + meta.name);
+          bGear.addEventListener('click', function () { openWidgetOptions(key, refresh); });
+          acts.appendChild(bGear);
+        }
+        acts.appendChild(mkToggle(!c.widgets.hidden[key], function (on) {
           var s = Store.get();
-          var i = s.widgets.order.indexOf(key);
-          if (i > 0) { s.widgets.order.splice(i, 1); s.widgets.order.splice(i - 1, 0, key); Store.save(); rerender(); }
-        });
-        acts.appendChild(bUp);
-
-        var bDown = el('button', 'ws-btn');
-        bDown.appendChild(svg('M8 13 L13 8 L10 8 L10 3 L6 3 L6 8 L3 8 Z', { fill: 'currentColor', 'stroke-width': 0 }));
-        bDown.title = 'Ниже';
-        bDown.addEventListener('click', function () {
-          var s = Store.get();
-          var i = s.widgets.order.indexOf(key);
-          if (i < s.widgets.order.length - 1) { s.widgets.order.splice(i, 1); s.widgets.order.splice(i + 1, 0, key); Store.save(); rerender(); }
-        });
-        acts.appendChild(bDown);
-
-        var bEye = el('button', 'ws-btn' + (c.widgets.hidden[key] ? ' off' : ''));
-        bEye.innerHTML = c.widgets.hidden[key]
-          ? '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"><path d="M2 8 C4 4.7 6 3.5 8 3.5 C10 3.5 12 4.7 14 8 C12 11.3 10 12.5 8 12.5 C6 12.5 4 11.3 2 8 Z" stroke-width="1.3"/><circle cx="8" cy="8" r="2" stroke-width="1.3"/><path d="M3 13 L13 3" stroke-width="1.4"/></svg>'
-          : '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"><path d="M2 8 C4 4.7 6 3.5 8 3.5 C10 3.5 12 4.7 14 8 C12 11.3 10 12.5 8 12.5 C6 12.5 4 11.3 2 8 Z" stroke-width="1.3"/><circle cx="8" cy="8" r="2" stroke-width="1.3"/></svg>';
-        bEye.title = c.widgets.hidden[key] ? 'Показать' : 'Скрыть';
-        bEye.addEventListener('click', function () {
-          var s = Store.get();
-          if (s.widgets.hidden[key]) delete s.widgets.hidden[key]; else s.widgets.hidden[key] = true;
+          if (on) delete s.widgets.hidden[key]; else s.widgets.hidden[key] = true;
           Store.save();
-          rerender();
-        });
-        acts.appendChild(bEye);
-
-        /* settings gear for widget-specific options */
-        var bGear = el('button', 'ws-btn');
-        bGear.appendChild(svg('M8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M12.4 3.6l-1.2 1.2M4.8 11.2l-1.2 1.2', { 'stroke-width': 1.4, 'stroke-linecap': 'round' }));
-        bGear.title = 'Настройки виджета';
-        bGear.addEventListener('click', function () {
-          openWidgetOptions(key, rerender);
-        });
-        acts.appendChild(bGear);
-
-        row.appendChild(acts);
-        root.appendChild(row);
+          refresh();
+        }));
+        r.appendChild(acts);
+        gW.appendChild(r);
       });
 
-      /* — Быстрый доступ management — */
-      root.appendChild(el('h2', null, 'Быстрый доступ'));
+      /* — Быстрый доступ — */
+      var gQ = mkGroup('Быстрый доступ');
       c.quickLinks.forEach(function (l, i) {
-        var row = el('div', 'ws-row');
+        var r = el('div', 'sc-row');
         var fav = el('div', 'ws-icon');
         var img = document.createElement('img');
         img.src = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(hostOf(l.url)) + '&sz=64';
         img.width = 20; img.height = 20; img.alt = '';
         img.onerror = function () { img.remove(); fav.textContent = '🔗'; };
         fav.appendChild(img);
-        row.appendChild(fav);
-        var main = el('div', 'ws-main');
-        main.appendChild(el('div', 'ws-name', l.title));
-        main.appendChild(el('div', 'ws-sub', hostOf(l.url)));
-        row.appendChild(main);
-        var acts = el('div', 'ws-actions');
-        var bUp = el('button', 'ws-btn');
-        bUp.appendChild(svg('M8 3 L3 8 L6 8 L6 13 L10 13 L10 8 L13 8 Z', { fill: 'currentColor', 'stroke-width': 0 }));
-        bUp.addEventListener('click', function () {
-          if (i > 0) { var s = Store.get(); var t = s.quickLinks[i - 1]; s.quickLinks[i - 1] = s.quickLinks[i]; s.quickLinks[i] = t; Store.save(); rerender(); }
-        });
-        var bDown = el('button', 'ws-btn');
-        bDown.appendChild(svg('M8 13 L13 8 L10 8 L10 3 L6 3 L6 8 L3 8 Z', { fill: 'currentColor', 'stroke-width': 0 }));
-        bDown.addEventListener('click', function () {
-          var s = Store.get();
-          if (i < s.quickLinks.length - 1) { var t = s.quickLinks[i + 1]; s.quickLinks[i + 1] = s.quickLinks[i]; s.quickLinks[i] = t; Store.save(); rerender(); }
-        });
+        r.appendChild(fav);
+        var main = el('div', 'sc-main');
+        main.appendChild(el('div', 'sc-label', l.title));
+        main.appendChild(el('div', 'sc-sub', hostOf(l.url)));
+        r.appendChild(main);
+        var acts = el('div', 'sc-actions');
         var bX = el('button', 'ws-btn');
+        bX.type = 'button';
         bX.appendChild(svg('M4.5 4.5 L11.5 11.5 M11.5 4.5 L4.5 11.5', { 'stroke-width': 1.7 }));
+        bX.title = 'Удалить';
+        bX.setAttribute('aria-label', 'Удалить ' + l.title);
         bX.addEventListener('click', function () {
-          var s = Store.get(); s.quickLinks.splice(i, 1); Store.save(); rerender();
+          var s = Store.get(); s.quickLinks.splice(i, 1); Store.save(); refresh();
         });
-        acts.appendChild(bUp); acts.appendChild(bDown); acts.appendChild(bX);
-        row.appendChild(acts);
-        root.appendChild(row);
+        acts.appendChild(bX);
+        r.appendChild(acts);
+        gQ.appendChild(r);
       });
 
-      var addRow = el('div', 'wp-custom-url');
-      var tIn = el('input', 'inp'); tIn.placeholder = 'Название';
-      var uIn = el('input', 'inp'); uIn.placeholder = 'https://…'; uIn.style.flex = '1';
+      var addRow = el('div', 'sc-row');
+      var addInputs = el('div', 'sc-main');
+      addInputs.style.display = 'flex';
+      addInputs.style.gap = '8px';
+      var tIn = el('input', 'inp'); tIn.placeholder = 'Название'; tIn.style.width = '150px';
+      var uIn = el('input', 'inp'); uIn.placeholder = 'example.com'; uIn.style.flex = '1';
+      addInputs.appendChild(tIn); addInputs.appendChild(uIn);
+      addRow.appendChild(addInputs);
       var bAdd = el('button', 'nt-btn', 'Добавить');
+      bAdd.type = 'button';
       bAdd.addEventListener('click', function () {
         var u = uIn.value.trim();
         if (!u) return;
@@ -700,17 +680,17 @@
         var s = Store.get();
         s.quickLinks.push({ title: tIn.value.trim() || hostOf(u), url: u });
         Store.save();
-        rerender();
+        refresh();
       });
-      addRow.appendChild(tIn); addRow.appendChild(uIn); addRow.appendChild(bAdd);
-      root.appendChild(addRow);
+      addRow.appendChild(bAdd);
+      gQ.appendChild(addRow);
 
-      /* — Reset — */
-      var resetRow = el('div');
-      resetRow.style.marginTop = '18px';
-      var bReset = el('button', 'btn-danger', 'Сбросить настройки виджетов');
+      /* — Сброс — */
+      var resetWrap = el('div', 'sc-reset');
+      var bReset = el('button', 'btn-danger', 'Сбросить настройки стартовой');
+      bReset.type = 'button';
       bReset.addEventListener('click', function () {
-        if (confirm('Сбросить все настройки виджетов, фона и быстрого доступа?')) {
+        if (confirm('Сбросить фон, виджеты и быстрый доступ?')) {
           var s = Store.get();
           s.widgets = JSON.parse(JSON.stringify(Store.defaults.widgets));
           s.wallpaper = Store.defaults.wallpaper;
@@ -719,21 +699,11 @@
           s.columns = Store.defaults.columns;
           s.quickLinks = JSON.parse(JSON.stringify(Store.defaults.quickLinks));
           Store.save();
-          rerender();
           refresh();
         }
       });
-      resetRow.appendChild(bReset);
-      root.appendChild(resetRow);
-
-      function rerender() {
-        Store.save();
-        var parent = root.parentNode;
-        if (!parent) return;
-        parent.innerHTML = '';
-        window.AeroWidgetsSettings.render(parent, opts);
-        refresh();
-      }
+      resetWrap.appendChild(bReset);
+      root.appendChild(resetWrap);
     }
   };
 
