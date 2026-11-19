@@ -20,8 +20,8 @@
 html[data-theme="dark"] {
   --bg: #16161a;
   --bg-solid: #16161a;
-  --chrome-tint: rgba(24, 24, 30, .42);
-  --chrome-tint-strong: rgba(18, 18, 24, .55);
+  --chrome-tint: rgba(24, 24, 30, .36);
+  --chrome-tint-strong: rgba(18, 18, 24, .52);
   --chrome-solid: #16161a;
   --glass: rgba(255, 255, 255, .07);
   --glass-hover: rgba(255, 255, 255, .11);
@@ -72,7 +72,9 @@ html[data-glass="low"]   .glass-blur { backdrop-filter: blur(12px) saturate(140%
 html[data-glass="medium"].glass-blur, html[data-glass="medium"] .glass-blur { backdrop-filter: blur(24px) saturate(160%); }
 html[data-glass="high"]  .glass-blur { backdrop-filter: blur(44px) saturate(180%); }
 
-/* floating chrome follows the same intensity setting (default = high) */
+/* floating chrome follows the same intensity setting (default = high).
+   Слои: верхний блик-градиент (стеклянный отлив) + полупрозрачный тинт —
+   blur размывает содержимое под хромом (обои стартовой, страницы настроек). */
 html[data-glass="low"] #titlebar, html[data-glass="low"] #toolbar {
   backdrop-filter: blur(14px) saturate(150%);
   -webkit-backdrop-filter: blur(14px) saturate(150%);
@@ -119,41 +121,23 @@ svg { fill: none; stroke: currentColor; width: 17px; height: 17px; flex-shrink: 
   display: flex; align-items: center; gap: 6px;
   height: var(--titlebar-h);
   padding: 0 8px 0 12px;
-  background: var(--chrome-tint);
-  backdrop-filter: blur(40px) saturate(170%);
-  -webkit-backdrop-filter: blur(40px) saturate(170%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, .02) 55%, rgba(0, 0, 0, 0)), var(--chrome-tint);
+  backdrop-filter: blur(48px) saturate(180%);
+  -webkit-backdrop-filter: blur(48px) saturate(180%);
   border-bottom: 1px solid rgba(0, 0, 0, .25);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
   -webkit-app-region: drag;
   position: absolute; top: 0; left: 0; right: 0;
   z-index: 40;
 }
 html[data-theme="light"] #titlebar { border-bottom-color: rgba(0,0,0,.1); }
 
-/* traffic lights */
-.traffic-lights { display: flex; gap: 8px; align-items: center; margin-right: 10px; -webkit-app-region: no-drag; }
-.tl {
-  width: 12px; height: 12px; border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, .18);
-  display: flex; align-items: center; justify-content: center;
-  padding: 0; cursor: pointer; position: relative;
-  transition: transform .18s var(--spring-fast);
-}
-.tl svg { width: 8px; height: 8px; stroke: rgba(0, 0, 0, .55); stroke-width: 1.4; opacity: 0; }
-.traffic-lights:hover .tl svg { opacity: 1; }
-.tl-close { background: #ff5f57; }
-.tl-min   { background: #febc2e; }
-.tl-max   { background: #28c840; }
-.tl:active { transform: scale(.92); }
-
-html[data-theme="dark"] .traffic-lights { filter: saturate(.85) brightness(.92); }
-html[data-theme="dark"] .tl svg { stroke: rgba(0, 0, 0, .6); }
-
 /* tab strip — Safari Golden Gate pills */
 #tabstrip {
   display: flex; align-items: center; gap: 5px;
-  flex: 1; min-width: 0; height: 100%;
+  flex: 0 1 auto; min-width: 0; height: 100%;
   padding: 7px 0; -webkit-app-region: drag;
+  overflow: hidden;
 }
 .tab {
   display: flex; align-items: center; gap: 7px;
@@ -210,8 +194,11 @@ html[data-compact-tabs="on"] .tab .tab-title { opacity: 0; }
 html[data-compact-tabs="on"] .tab.active .tab-title { opacity: 1; }
 
 #btn-newtab { -webkit-app-region: no-drag; }
+#titlebar .tbtn { width: 32px; height: 32px; border-radius: 8px; }
 
-.titlebar-spacer { width: 10px; flex-shrink: 0; }
+/* flexible spacer pushes window buttons to the right edge; the new-tab
+   button stays directly next to the last tab */
+.titlebar-spacer { flex: 1 1 0; min-width: 10px; }
 
 /* windows buttons */
 .win-buttons { display: flex; -webkit-app-region: no-drag; margin-left: 4px; }
@@ -223,6 +210,7 @@ html[data-web-mode="on"] .win-buttons, html[data-web-mode="on"] .traffic-lights 
 }
 .wb svg { width: 12px; height: 12px; }
 .wb:hover { background: var(--glass-hover); color: var(--text); }
+.wb:active { background: var(--glass-active); }
 .wb-close:hover { background: #e81123; color: #fff; }
 #app.maximized #wb-max-icon rect:nth-child(2) { display: block; }
 
@@ -230,11 +218,11 @@ html[data-web-mode="on"] .win-buttons, html[data-web-mode="on"] .traffic-lights 
 #toolbar {
   display: flex; align-items: center; gap: 8px;
   height: var(--toolbar-h); padding: 0 12px;
-  background: var(--chrome-tint-strong);
-  backdrop-filter: blur(40px) saturate(170%);
-  -webkit-backdrop-filter: blur(40px) saturate(170%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .02) 55%, rgba(0, 0, 0, 0)), var(--chrome-tint-strong);
+  backdrop-filter: blur(48px) saturate(180%);
+  -webkit-backdrop-filter: blur(48px) saturate(180%);
   border-bottom: 1px solid rgba(0, 0, 0, .22);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
   position: absolute; top: var(--titlebar-h); left: 0; right: 0;
   z-index: 39;
   -webkit-app-region: drag;
@@ -257,11 +245,14 @@ html[data-theme="light"] #toolbar { border-bottom-color: rgba(0,0,0,.08); }
   background: transparent; border: none; outline: none;
   color: var(--text); cursor: pointer;
   -webkit-app-region: no-drag;
-  transition: background .18s var(--ease-out), transform .16s var(--spring-fast);
+  transition: background .18s var(--ease-out), transform .16s var(--spring-fast), color .18s var(--ease-out);
 }
 .tbtn:hover { background: var(--glass-hover); }
 .tbtn:active { transform: scale(.92); }
 .tbtn:disabled { opacity: .35; pointer-events: none; }
+.tbtn:focus-visible, .nt-btn:focus-visible, .wb:focus-visible, .tab:focus-visible, .wc-btn:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
 #btn-reload.spinning svg { animation: spin .6s linear infinite; }
 
 /* address bar */
@@ -457,8 +448,21 @@ html[data-theme="light"] .clock-analog .tick { background: rgba(0,0,0,.22); }
   .widget.wM, .widget.wL { grid-column: span 2; }
 }
 
-/* edit mode */
+/* edit mode — dedicated editing bar instead of scattered controls */
 .newtab-tools { margin-top: 26px; display: flex; gap: 10px; animation: riseIn .5s .1s var(--spring) both; }
+body.edit-mode .newtab-tools { display: none; }
+.edit-bar {
+  margin-top: 26px; width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--widget-bg));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 10px 34px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
+  animation: riseIn .3s var(--ease-out) both;
+}
+.edit-bar .eb-title { font-weight: 700; font-size: 13px; }
+.edit-bar .eb-hint { flex: 1; min-width: 0; color: var(--text-secondary); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.edit-bar .nt-btn { height: 32px; padding: 0 14px; font-size: 12.5px; }
 .nt-btn {
   display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
   background: var(--widget-bg); backdrop-filter: blur(30px) saturate(170%);
@@ -479,6 +483,7 @@ html[data-theme="light"] .nt-btn svg { color: #48484c; }
 body.edit-mode .widget { outline: 1.5px dashed color-mix(in srgb, var(--text) 45%, transparent); outline-offset: 3px; cursor: grab; }
 body.edit-mode .widget { padding-top: 44px; }
 body.edit-mode .widget:hover { transform: none; }
+body.edit-mode .newtab-inner { padding-bottom: 60px; }
 .widget-controls {
   position: absolute; top: 8px; right: 8px; display: none; gap: 4px; z-index: 5;
 }

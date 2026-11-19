@@ -36,7 +36,7 @@ import {
 import { DesktopDownloads } from "@/components/desktop-downloads";
 import { GlassWindow } from "@/components/landing/browser-mockups";
 
-const VERSION = "2.3.17";
+const VERSION = "2.3.18";
 
 const NAV_LINKS = [
   { href: "#features", label: "Возможности" },
@@ -640,8 +640,13 @@ function DownloadSection() {
 
 const CHANGELOG = [
   {
-    version: "2.3.17",
+    version: "2.3.18",
     current: true,
+    text: "Интерфейс по-настоящему ваш: убраны цветные точки в углу (только настоящие кнопки окна Windows), кнопка новой вкладки теперь прижата к последней вкладке, поиск с главного экрана убран, редактирование экрана — через понятную панель, выбор фона переехал в настройки оформления, стекло стало заметнее, а стартовое окно больше не вспыхивает кремовым.",
+  },
+  {
+    version: "2.3.17",
+    current: false,
     text: "Быстрее качается: установщик сжат по-настоящему (LZMA) — файл меньше почти на треть, а при обрыве связи загрузка продолжается с места обрыва, а не с нуля.",
   },
   {

@@ -323,110 +323,6 @@
       g.appendChild(el('p', null, new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })));
       inner.appendChild(g);
 
-      /* search */
-      var search = el('div', 'nt-search');
-      var box = el('div', 'nt-search-box');
-      box.appendChild(svg('M11.5 11.5 L14 14', { 'stroke-width': 1.6, 'stroke-linecap': 'round' }) && (function () {
-        var NS = 'http://www.w3.org/2000/svg';
-        var s = document.createElementNS(NS, 'svg');
-        s.setAttribute('viewBox', '0 0 16 16'); s.setAttribute('fill', 'none');
-        var c = document.createElementNS(NS, 'circle');
-        c.setAttribute('cx', '7'); c.setAttribute('cy', '7'); c.setAttribute('r', '4.2'); c.setAttribute('stroke-width', '1.6');
-        var p = document.createElementNS(NS, 'path');
-        p.setAttribute('d', 'M10.2 10.2 L13.5 13.5'); p.setAttribute('stroke-width', '1.6'); p.setAttribute('stroke-linecap', 'round');
-        s.appendChild(c); s.appendChild(p);
-        return s;
-      })());
-      var inp = el('input');
-      inp.placeholder = 'Поиск в ' + (Store.engines[cfg.searchEngine] || Store.engines.google).name + ' или введите адрес';
-      inp.setAttribute('aria-label', 'Поиск');
-      box.appendChild(inp);
-      var chip = el('button', 'engine-chip');
-      chip.appendChild(el('span', null, (Store.engines[cfg.searchEngine] || Store.engines.google).name));
-      chip.appendChild(svg('M4.5 6.5 L8 10 L11.5 6.5', { 'stroke-width': 1.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
-      box.appendChild(chip);
-      search.appendChild(box);
-      var sugg = el('div', 'nt-suggest');
-      search.appendChild(sugg);
-      inner.appendChild(search);
-
-      chip.addEventListener('click', function () {
-        var names = Object.keys(Store.engines);
-        sugg.innerHTML = '';
-        names.forEach(function (k) {
-          var it = el('div', 'suggest-item' + (k === cfg.searchEngine ? ' sel' : ''));
-          it.appendChild(el('span', 'si-icon', '🔍'));
-          it.appendChild(el('span', 'si-text', Store.engines[k].name));
-          it.addEventListener('click', function () {
-            Store.update({ searchEngine: k });
-            inp.placeholder = 'Поиск в ' + Store.engines[k].name + ' или введите адрес';
-            chip.querySelector('span').textContent = Store.engines[k].name;
-            sugg.classList.remove('open');
-          });
-          sugg.appendChild(it);
-        });
-        sugg.classList.toggle('open');
-      });
-
-      inp.addEventListener('input', function () {
-        var q = inp.value.trim();
-        sugg.innerHTML = '';
-        if (!q) { sugg.classList.remove('open'); return; }
-        var items = [];
-        if (cfg.suggestHistory) {
-          Store.history.all().slice(0, 40).forEach(function (hi) {
-            if (hi.url.indexOf(q) !== -1 || (hi.title || '').toLowerCase().indexOf(q.toLowerCase()) !== -1) {
-              items.push({ icon: '🕘', text: hi.title || hi.url, sub: hostOf(hi.url), url: hi.url, type: 'История' });
-            }
-          });
-          cfg.quickLinks.forEach(function (l) {
-            if (l.url.indexOf(q) !== -1 || l.title.toLowerCase().indexOf(q.toLowerCase()) !== -1) {
-              items.push({ icon: '🔗', text: l.title, sub: hostOf(l.url), url: l.url, type: 'Ссылка' });
-            }
-          });
-        }
-        items.slice(0, 6).forEach(function (it) {
-          var row = el('div', 'suggest-item');
-          row.appendChild(el('span', 'si-icon', it.icon));
-          var txt = el('span', 'si-text', it.text);
-          row.appendChild(txt);
-          row.appendChild(el('span', 'si-sub', it.sub));
-          row.addEventListener('click', function () { navigate(it.url); });
-          sugg.appendChild(row);
-        });
-        if (items.length) {
-          var sep = el('div', 'suggest-sep');
-          sugg.appendChild(sep);
-        }
-        var sr = el('div', 'suggest-item');
-        sr.appendChild(el('span', 'si-icon', '🔍'));
-        sr.appendChild(el('span', 'si-text', 'Искать «' + q + '» в ' + (Store.engines[cfg.searchEngine] || Store.engines.google).name));
-        sr.addEventListener('click', function () {
-          navigate((Store.engines[cfg.searchEngine] || Store.engines.google).template.replace('%s', encodeURIComponent(q)));
-        });
-        sugg.appendChild(sr);
-        sugg.classList.add('open');
-      });
-      inp.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-          var q = inp.value.trim();
-          if (!q) return;
-          if (/^https?:\/\//i.test(q) || (!q.match(/\s/) && q.indexOf('.') !== -1)) {
-            if (!/^https?:\/\//i.test(q)) q = 'https://' + q;
-            navigate(q);
-          } else {
-            navigate((Store.engines[cfg.searchEngine] || Store.engines.google).template.replace('%s', encodeURIComponent(q)));
-          }
-        } else if (e.key === 'Escape') {
-          sugg.classList.remove('open');
-          inp.blur();
-        }
-      });
-      document.addEventListener('mousedown', function onDoc(e) {
-        if (!nt.isConnected) { document.removeEventListener('mousedown', onDoc); return; }
-        if (!search.contains(e.target)) sugg.classList.remove('open');
-      });
-
       /* widgets grid */
       var grid = el('div', 'widgets-grid');
       grid.style.setProperty('--cols', String(cfg.columns || 4));
@@ -516,16 +412,13 @@
       }
       renderWidgets(true);
 
-      /* tools row */
+      /* tools row + dedicated edit bar.
+         В обычном режиме видна строка инструментов; при редактировании она
+         сменяется единой панелью редактирования с явным выходом. */
       var tools = el('div', 'newtab-tools');
       var bEdit = el('button', 'nt-btn');
       bEdit.appendChild(svg('M11 2.5 L13.5 5 L6 12.5 L3 13 L3.5 10 Z', { 'stroke-width': 1.4, 'stroke-linejoin': 'round' }));
       bEdit.appendChild(el('span', null, 'Изменить'));
-      bEdit.addEventListener('click', function () {
-        var on = document.body.classList.toggle('edit-mode');
-        bEdit.querySelector('span').textContent = on ? 'Готово' : 'Изменить';
-        renderWidgets();
-      });
       var bCfg = el('button', 'nt-btn');
       bCfg.appendChild(svg('M8 1.8v1.7M8 12.5v1.7M1.8 8h1.7M12.5 8h1.7M3.6 3.6l1.2 1.2M11.2 11.2l1.2 1.2M12.4 3.6l-1.2 1.2M4.8 11.2l-1.2 1.2', { 'stroke-width': 1.4, 'stroke-linecap': 'round' }));
       bCfg.appendChild(el('span', null, 'Настройки виджетов'));
@@ -538,6 +431,35 @@
       tools.appendChild(bCfg);
       inner.appendChild(tools);
 
+      var editBar = el('div', 'edit-bar');
+      editBar.style.display = 'none';
+      editBar.appendChild(el('span', 'eb-title', 'Редактирование экрана'));
+      editBar.appendChild(el('span', 'eb-hint', 'Перетаскивайте виджеты, меняйте размер кнопкой с буквой, скрывайте лишнее крестиком'));
+      var bWid = el('button', 'nt-btn');
+      bWid.appendChild(svg('M2.4 2.4h4.7v4.7H2.4zM8.9 2.4h4.7v4.7H8.9zM2.4 8.9h4.7v4.7H2.4zM8.9 8.9h4.7v4.7H8.9z', { fill: 'currentColor', 'stroke-width': 0 }));
+      bWid.appendChild(el('span', null, 'Виджеты'));
+      bWid.addEventListener('click', function () {
+        window.AeroModal.open('Настройки виджетов', function (body) {
+          window.AeroWidgetsSettings.render(body, { refresh: function () { refresh(); } });
+        });
+      });
+      var bDone = el('button', 'nt-btn primary');
+      bDone.appendChild(el('span', null, 'Готово'));
+      bDone.addEventListener('click', function () { setEditMode(false); });
+      editBar.appendChild(bWid);
+      editBar.appendChild(bDone);
+      inner.appendChild(editBar);
+
+      function setEditMode(on) {
+        document.body.classList.toggle('edit-mode', on);
+        editBar.style.display = on ? '' : 'none';
+        tools.style.display = on ? 'none' : '';
+        renderWidgets();
+      }
+      bEdit.addEventListener('click', function () { setEditMode(true); });
+      // при перерисовке страницы (смена обоев и т.п.) статус режима сохраняется
+      if (document.body.classList.contains('edit-mode')) { editBar.style.display = ''; tools.style.display = 'none'; }
+
       nt.appendChild(inner);
       container.appendChild(nt);
       nt.classList.add('view-entrance');
@@ -545,14 +467,15 @@
   };
 
   /* ═══════════ Widget settings (shared: modal + settings page) ═══════════ */
-  window.AeroWidgetsSettings = {
+  /* Общий выбор фона стартового экрана (используется в настройках виджетов
+     и на вкладке «Оформление» страницы настроек). */
+  window.AeroWallpaperPicker = {
     render: function (root, opts) {
       opts = opts || {};
       var refresh = opts.refresh || function () {};
       var c = Store.get();
 
-      /* — Фон — */
-      root.appendChild(el('h2', null, 'Фон'));
+      if (opts.title !== false) root.appendChild(el('h2', null, 'Фон'));
       var wpGrid = el('div', 'wp-grid');
       WALLPAPERS.forEach(function (p) {
         var b = el('button', 'wp-swatch' + (c.wallpaper === p.id ? ' sel' : ''));
@@ -593,7 +516,8 @@
             Store.update({ wallpaper: 'aurora', wallpaperUrl: '' });
             close();
             refresh();
-            window.AeroWidgetsSettings.render(root.parentNode, opts);
+            root.innerHTML = '';
+            window.AeroWallpaperPicker.render(root, opts);
           });
           var bOk = el('button', 'nt-btn primary', 'Применить');
           bOk.addEventListener('click', function () {
@@ -601,7 +525,8 @@
             Store.update({ wallpaper: 'custom', wallpaperUrl: url });
             close();
             refresh();
-            window.AeroWidgetsSettings.render(root.parentNode, opts);
+            root.innerHTML = '';
+            window.AeroWallpaperPicker.render(root, opts);
           });
           actions.appendChild(bClear);
           actions.appendChild(bOk);
@@ -621,6 +546,16 @@
       dimR.addEventListener('change', function () { Store.update({ wallpaperDim: Number(dimR.value) }); refresh(); });
       dimRow.appendChild(dimR);
       root.appendChild(dimRow);
+    }
+  };
+
+  window.AeroWidgetsSettings = {
+    render: function (root, opts) {
+      opts = opts || {};
+      var refresh = opts.refresh || function () {};
+      var c = Store.get();
+
+      window.AeroWallpaperPicker.render(root, opts);
 
       /* — Раскладка — */
       root.appendChild(el('h2', null, 'Раскладка'));

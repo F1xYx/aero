@@ -9,20 +9,8 @@
 <body>
   <div id="app">
 
-    <!-- ══════════════ Titlebar: traffic lights + tab strip + windows buttons ══════════════ -->
+    <!-- ══════════════ Titlebar: tab strip (new-tab button hugs the last tab) + windows buttons ══════════════ -->
     <header id="titlebar">
-      <div class="traffic-lights" aria-hidden="true">
-        <button id="tl-close" class="tl tl-close" tabindex="-1">
-          <svg viewBox="0 0 10 10"><path d="M2.5 2.5 L7.5 7.5 M7.5 2.5 L2.5 7.5"/></svg>
-        </button>
-        <button id="tl-min" class="tl tl-min" tabindex="-1">
-          <svg viewBox="0 0 10 10"><path d="M2 5 L8 5"/></svg>
-        </button>
-        <button id="tl-max" class="tl tl-max" tabindex="-1">
-          <svg viewBox="0 0 10 10"><path d="M2.8 2.8 L2.8 7.2 L7.2 7.2 L7.2 2.8 Z"/></svg>
-        </button>
-      </div>
-
       <div id="tabstrip" role="tablist" aria-label="Вкладки"></div>
 
       <button id="btn-newtab" class="tbtn" title="Новая вкладка (Ctrl+T)" aria-label="Новая вкладка">

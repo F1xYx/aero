@@ -36,7 +36,7 @@
   function isInternalUrl(u) { return /^(aero|aera):\/\//i.test(u || ''); }
 
   window.AeroUI = {
-    version: '2.3.17',
+    version: '2.3.18',
     toast: toast,
     createTab: createTab,
     navigateActive: function (url) {
@@ -725,14 +725,10 @@
   /* ═══ window controls ═══ */
   function wireWindowControls() {
     var min = $('wb-min'), max = $('wb-max'), close = $('wb-close');
-    var tlc = $('tl-close'), tlm = $('tl-min'), tlx = $('tl-max');
     if (DESKTOP) {
       min.addEventListener('click', function () { window.electronAPI.minimize(); });
       max.addEventListener('click', function () { window.electronAPI.maximizeToggle(); });
       close.addEventListener('click', function () { window.electronAPI.close(); });
-      tlc.addEventListener('click', function () { window.electronAPI.close(); });
-      tlm.addEventListener('click', function () { window.electronAPI.minimize(); });
-      tlx.addEventListener('click', function () { window.electronAPI.maximizeToggle(); });
       window.electronAPI.onWindowState(function (st) {
         $('app').classList.toggle('maximized', !!st.maximized);
       });
@@ -740,7 +736,7 @@
         if (st) $('app').classList.toggle('maximized', !!st.maximized);
       }).catch(function () {});
     } else {
-      [min, max, close, tlc, tlm, tlx].forEach(function (b) { b.style.display = 'none'; });
+      [min, max, close].forEach(function (b) { b.style.display = 'none'; });
     }
   }
 
@@ -808,7 +804,7 @@
 
     if (DESKTOP && window.electronAPI.version) {
       window.electronAPI.version().then(function (v) {
-        window.AeroUI.version = v || '2.3.17';
+        window.AeroUI.version = v || '2.3.18';
       }).catch(function () {});
     }
 

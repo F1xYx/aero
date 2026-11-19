@@ -166,12 +166,21 @@
           });
           sec.appendChild(acc);
 
+          sec.appendChild(el('h2', null, 'Фон новой вкладки'));
+          sec.appendChild(el('p', 'hint', 'Обои стартового экрана: градиенты, своя картинка и затемнение.'));
+          var wpHolder = el('div');
+          sec.appendChild(wpHolder);
+          if (window.AeroWallpaperPicker) {
+            window.AeroWallpaperPicker.render(wpHolder, { refresh: function () { rerender(); }, title: false });
+          }
+
           sec.appendChild(el('h2', null, 'Эффекты'));
           sec.appendChild(row('Интенсивность стекла', 'Сила размытия liquid glass', seg([
             { value: 'low', label: 'Низкая' },
             { value: 'medium', label: 'Средняя' },
-            { value: 'high', label: 'Высокая' }
-          ], c.glass, function (v) { Store.update({ glass: v }); Store.applyTheme(); })));
+            { value: 'high', label: 'Высокая' },
+            { value: 'off', label: 'Выкл' }
+          ], c.glass, function (v) { Store.update({ glass: v }); Store.applyTheme(); rerender(); })));
           sec.appendChild(row('Анимации', 'Плавные переходы вкладок и виджетов', toggleBtn(c.animations, function (v) {
             Store.update({ animations: v }); Store.applyTheme();
           })));
@@ -255,7 +264,7 @@
           card.appendChild(logo);
           var info = el('div');
           info.appendChild(el('div', 'about-name', 'Aero'));
-          info.appendChild(el('div', 'about-ver', 'Версия ' + (window.AeroUI && window.AeroUI.version ? window.AeroUI.version : '2.3.17')));
+          info.appendChild(el('div', 'about-ver', 'Версия ' + (window.AeroUI && window.AeroUI.version ? window.AeroUI.version : '2.3.18')));
           info.appendChild(el('div', 'about-line',
             'Интерфейс в стиле Safari 27 (Golden Gate / macOS Tahoe).\n' +
             'Движок: ' + (navigator.userAgent.indexOf('Firefox') !== -1 ? 'Gecko' : 'Chromium') +
